@@ -101,7 +101,7 @@ public class GraphArea extends Region{
       final ObservableList<PathElement> lele = verticalGridLines.getElements();
       final ObservableList<PathElement> fele = verticalRowFill.getElements();
       int lelesize = lele.size();
-      int felesize = fele.size();
+      final int felesize = fele.size();
       final boolean fill = isAlternativeColumnFillVisible();
       final boolean line = isVerticalGridLinesVisible();
       verticalGridLines.setVisible(line);
@@ -115,10 +115,10 @@ public class GraphArea extends Region{
       }
       if(!fill){
         fele.clear();
-      }else if(felesize > e*5){
-        fele.remove(e*5,felesize);
-        felesize = e*5;
       }
+      int findex = 0;
+
+
       if(!line && !fill){
         break V;
       }
@@ -145,11 +145,12 @@ public class GraphArea extends Region{
           LineTo l1,l2,l3;
 
           if(f || i==0){
-            if(i*5 < felesize){
-              m = (MoveTo)fele.get(i*5);
-              l1 = (LineTo)fele.get(i*5+1);
-              l2 = (LineTo)fele.get(i*5+2);
-              l3 = (LineTo)fele.get(i*5+3);
+            if(findex < felesize){
+              m = (MoveTo)fele.get(findex);
+              l1 = (LineTo)fele.get(findex+1);
+              l2 = (LineTo)fele.get(findex+2);
+              l3 = (LineTo)fele.get(findex+3);
+              findex += 5;
             }else{
               m = new MoveTo();
               l1 = new LineTo();
@@ -181,6 +182,9 @@ public class GraphArea extends Region{
           l3.setY(0);
         }//end fill
       }//end for
+      if(findex < felesize){
+        fele.remove(findex,felesize);
+      }
     }//end V
 
     H:{
@@ -190,7 +194,7 @@ public class GraphArea extends Region{
       final ObservableList<PathElement> lele = horizontalGridLines.getElements();
       final ObservableList<PathElement> fele = horizontalRowFill.getElements();
       int lelesize = lele.size();
-      int felesize = fele.size();
+      final int felesize = fele.size();
       final boolean fill = isAlternativeRowFillVisible();
       final boolean line = isHorizontalGridLinesVisible();
       horizontalGridLines.setVisible(line);
@@ -204,10 +208,8 @@ public class GraphArea extends Region{
       }
       if(!fill){
         fele.clear();
-      }else if(felesize > e*5){
-        fele.remove(e*5,felesize);
-        felesize = e*5;
       }
+      int findex = 0;
       if(!line && !fill){
         break H;
       }
@@ -233,11 +235,12 @@ public class GraphArea extends Region{
           MoveTo m;
           LineTo l1,l2,l3;
           if(f || i==0){
-            if(i*5 < felesize){
-              m = (MoveTo)fele.get(i*5);
-              l1 = (LineTo)fele.get(i*5+1);
-              l2 = (LineTo)fele.get(i*5+2);
-              l3 = (LineTo)fele.get(i*5+3);
+            if(findex < felesize){
+              m = (MoveTo)fele.get(findex);
+              l1 = (LineTo)fele.get(findex+1);
+              l2 = (LineTo)fele.get(findex+2);
+              l3 = (LineTo)fele.get(findex+3);
+              findex+=5;
             }else{
               m = new MoveTo();
               l1 = new LineTo();
@@ -269,6 +272,9 @@ public class GraphArea extends Region{
           l3.setY(y1);
         }//end fill
       }//end for
+      if(findex < felesize){
+        fele.remove(findex,felesize);
+      }
     }//end H
 
 
@@ -356,8 +362,8 @@ public class GraphArea extends Region{
     final int esize = elements.size();
     final LineChartAxis xaxis = getXAxis();
     final LineChartAxis yaxis = getYAxis();
-
-    if(getOrientation()!=Orientation.VERTICAL){//x軸方向昇順
+    final Orientation orientation = getOrientation();
+    if(orientation==Orientation.HORIZONTAL){//x軸方向昇順
       final LineChartAxis axis = xaxis;
       final double low=axis.getLowerValue();
       final double up =axis.getUpperValue();

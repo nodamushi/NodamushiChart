@@ -96,7 +96,8 @@ public abstract class LineChartAxis extends Region{
     }
     nowLayout = true;
     try{
-      final boolean b=!isDataValidate();
+      final boolean b=!isDataValidate() ||
+          getAxisLength(width, height) != getAxisLength(lastLayoutWidth, lastLayoutHeight);
       if(b){
         computeAxisProperties(width, height);
         setLayoutValidate(false);
@@ -771,10 +772,10 @@ public abstract class LineChartAxis extends Region{
       final double w1 = linesPrefSize();
       final double w2 = scroll!=null && scroll.isVisible()?scroll.prefWidth(height):0;
 
-      //FIXME バグあり
-//      layoutChildren(Double.NaN, height);
-//      final double w3 = labelGroup.prefWidth(height);
-      return w1+w2;
+
+      layoutChildren(lastLayoutWidth, height);
+      final double w3 = labelGroup.prefWidth(height);
+      return w1+w2+w3;
     }
   }
 
@@ -786,10 +787,9 @@ public abstract class LineChartAxis extends Region{
       final double h1 = linesPrefSize();
       final double h2 = scroll!=null && scroll.isVisible()? scroll.prefHeight(width):0;
 
-      //FIXME バグあり
-//      layoutChildren(width, Double.NaN);
-//      final double h3 = labelGroup.prefHeight(width);
-      return h1+h2;
+      layoutChildren(width, lastLayoutHeight);
+      final double h3 = labelGroup.prefHeight(width);
+      return h1+h2+h3;
     }
   }
 
@@ -951,7 +951,6 @@ public abstract class LineChartAxis extends Region{
         if(scroll.isVisible()){
           y = scroll.prefHeight(-1);
           scroll.resizeRelocate(0, 0, width, y);
-          System.out.println("width"+width);
         }
         lineGroup.setLayoutX(0);
         lineGroup.setLayoutY(y);
@@ -989,7 +988,6 @@ public abstract class LineChartAxis extends Region{
 
     final boolean ish = isHorizontal();
     final double l = getAxisLength(width, height);
-    System.out.println("l="+l);
     baseLine.setEndX(ish?l:0);
     baseLine.setEndY(ish?0:l);
 

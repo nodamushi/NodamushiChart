@@ -58,14 +58,13 @@ public class NLineChart extends Region{
   protected void layoutChildren(double width,double height){
     if(!isDataValidate()){
       dealWithData();
-      setLayoutValidate(false);
     }
-    if(!isLayoutValidate()){
-      final Insets in = getInsets();
-      width -=in.getLeft()+in.getRight();
-      height -=in.getTop()+in.getBottom();
-      layoutChart(width, height,in.getLeft(),in.getTop());
-    }
+
+    final Insets in = getInsets();
+    width -=in.getLeft()+in.getRight();
+    height -=in.getTop()+in.getBottom();
+    layoutChart(width, height,in.getLeft(),in.getTop());
+
   }
 
   protected void dealWithData(){
@@ -107,11 +106,10 @@ public class NLineChart extends Region{
     final double titleh = title.prefHeight(w);
     final double titlew = title.prefWidth(titleh);
     title.resizeRelocate(x0+(w-titlew)*0.5, 0, titlew, titleh);
-    layoutChartArea(w, h-titleh);
-    setLayoutValidate(true);
+    layoutChartArea(w, h-titleh,x0,titleh);
   }
 
-  protected void layoutChartArea(final double w,final double h){
+  protected void layoutChartArea(final double w,final double h,final double x0,final double y0){
     if(getXAxis() == null || getYAxis() == null){
       graph.setVisible(false);
     }else {
@@ -184,19 +182,19 @@ public class NLineChart extends Region{
       y=!xAxis.isVisible()||isBottom?0:xAxisHeight;
       if(xAxis.isVisible()) {
         if(isBottom){
-          xAxis.relocate(x, graphHeight);
+          xAxis.relocate(x+x0, graphHeight+y0);
         }else{
-          xAxis.relocate(x, 0);
+          xAxis.relocate(x+x0, y0);
         }
       }
       if(yAxis.isVisible()) {
         if(isLeft){
-          yAxis.relocate(0,y);
+          yAxis.relocate(x0,y+y0);
         }else{
-          yAxis.relocate(graphWidth,y);
+          yAxis.relocate(graphWidth+x0,y+y0);
         }
       }
-      graph.relocate(x, y);
+      graph.relocate(x+x0, y+y0);
       final double oldgW = graph.getWidth();
       final double oldgH = graph.getHeight();
       final boolean resize = oldgW != graphWidth || oldgH != graphHeight;
@@ -411,34 +409,22 @@ public class NLineChart extends Region{
 
 
 
-  protected InvalidationListener getLayoutValidateListener(){
-    if (layoutValidateListener == null) {
-      layoutValidateListener = new InvalidationListener(){
+  protected InvalidationListener getLayoutInvalidationListener(){
+    if (layoutInvalidationListener == null) {
+      layoutInvalidationListener = new InvalidationListener(){
         @Override
         public void invalidated(final Observable observable){
-          if (isLayoutValidate()) {
-            setLayoutValidate(false);
-            requestLayout();
-          }
+          requestLayout();
         }
       };
     }
-    return layoutValidateListener;
+    return layoutInvalidationListener;
   }
 
-  protected boolean isLayoutValidate(){
-    return layoutvalidate;
-  }
-
-  protected void setLayoutValidate(final boolean bool){
-    layoutvalidate = bool;
-  }
 
   /** 直接フィールドを利用せずに、 getValidateListener() を利用すること*/
-  private InvalidationListener layoutValidateListener = null;
+  private InvalidationListener layoutInvalidationListener = null;
 
-  /** 状態の正当性を示すプロパティ*/
-  private boolean layoutvalidate = false;
 
 
   private ChangeListener<LineChartAxis> axisListener =new ChangeListener<LineChartAxis>(){

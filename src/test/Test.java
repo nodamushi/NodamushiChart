@@ -28,7 +28,7 @@ public class Test extends Application{
     c.setXAxis(axis);
     c.setYAxis(yaxis);
     axis.setLowerValue(0);
-    axis.setUpperValue(2);
+    axis.setUpperValue(5);
     final ObservableList<LineChartData> datas = c.getDatas();
     final LineChartData data = new LineChartData(200);
     //sinc関数を表示してみる
@@ -42,7 +42,7 @@ public class Test extends Application{
     datas.add(data);
 
     final BorderPane p = new BorderPane();
-    p.setPrefWidth(400);
+    p.setPrefWidth(600);
     p.setPrefHeight(400);
     p.setCenter(c);
     p.setStyle("-fx-padding:50");
