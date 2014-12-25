@@ -41,6 +41,7 @@ public class GraphArea extends Region{
   private Group background,plotArea,foreground;
   private Path
   verticalGridLines,horizontalGridLines,
+  verticalMinorGridLines,horizontalMinorGridLines,
   verticalRowFill,horizontalRowFill;
 
   public GraphArea(){
@@ -67,11 +68,20 @@ public class GraphArea extends Region{
     horizontalGridLines=new Path();
     verticalRowFill = new Path();
     horizontalRowFill = new Path();
+    verticalMinorGridLines = new Path();
+    horizontalMinorGridLines = new Path();
     verticalRowFill.getStyleClass().setAll("chart-alternative-column-fill");
     horizontalRowFill.getStyleClass().setAll("chart-alternative-row-fill");
     verticalGridLines.getStyleClass().setAll("chart-vertical-grid-lines");
     horizontalGridLines.getStyleClass().setAll("chart-horizontal-grid-lines");
+    verticalMinorGridLines.getStyleClass().setAll(
+        "chart-vertical-grid-lines",
+        "chart-vertical-minor-grid-lines");
+    horizontalMinorGridLines.getStyleClass().setAll(
+        "chart-horizontal-grid-lines",
+        "chart-horizontal-minor-grid-lines");
     getChildren().addAll(verticalRowFill,horizontalRowFill,
+        verticalMinorGridLines,horizontalMinorGridLines,
         verticalGridLines,horizontalGridLines,
         background,plotArea,foreground);
   }
@@ -94,6 +104,7 @@ public class GraphArea extends Region{
 
     final double w = getWidth(),h = getHeight();
     //背景の線を描画
+
     V:{
       final LineChartAxis axis = xaxis;
       final List<Double> vTicks = axis.getMajorTicks();
@@ -277,6 +288,67 @@ public class GraphArea extends Region{
       }
     }//end H
 
+    V:{
+      final LineChartAxis axis =xaxis;
+      if(!isVerticalMinorGridLinesVisible()){
+        verticalMinorGridLines.getElements().clear();
+        break V;
+      }
+      final List<Double> minorTicks = axis.getMinorTicks();
+      final ObservableList<PathElement> ele = verticalMinorGridLines.getElements();
+      final int elesize = ele.size();
+      final int e = minorTicks.size();
+      if(elesize > e*2){
+        ele.remove(e*2, elesize);
+      }
+      for(int i=0;i<e;i++){
+        final double d = minorTicks.get(i);
+        MoveTo mt;LineTo lt;
+        if(i*2 < elesize){
+          mt = (MoveTo)ele.get(i*2);
+          lt = (LineTo)ele.get(i*2+1);
+        }else{
+          mt = new MoveTo();
+          lt = new LineTo();
+          ele.addAll(mt,lt);
+        }
+        mt.setX(d);
+        mt.setY(0);
+        lt.setX(d);
+        lt.setY(h);
+      }
+    }
+
+    H:{
+      final LineChartAxis axis =yaxis;
+      if(!isHorizontalMinorGridLinesVisible()){
+        horizontalMinorGridLines.getElements().clear();
+        break H;
+      }
+      final List<Double> minorTicks = axis.getMinorTicks();
+      final ObservableList<PathElement> ele = horizontalMinorGridLines.getElements();
+      final int elesize = ele.size();
+      final int e = minorTicks.size();
+      if(elesize > e*2){
+        ele.remove(e*2, elesize);
+      }
+      for(int i=0;i<e;i++){
+        final double d = minorTicks.get(i);
+        MoveTo mt;LineTo lt;
+        if(i*2 < elesize){
+          mt = (MoveTo)ele.get(i*2);
+          lt = (LineTo)ele.get(i*2+1);
+        }else{
+          mt = new MoveTo();
+          lt = new LineTo();
+          ele.addAll(mt,lt);
+        }
+        mt.setX(0);
+        mt.setY(d);
+        lt.setX(w);
+        lt.setY(d);
+      }
+    }
 
     for(int i=0;i<2;i++){
       final List<GraphLine> lines = i==0?backGroundLines:foreGroundLines;
@@ -503,7 +575,7 @@ public class GraphArea extends Region{
 
 
   /**
-   * 自動的に生成されたプロパティ
+   * 横方向のグリッド線を表示するかどうかのプロパティ
    * @return
    */
   public BooleanProperty horizontalGridLinesVisibleProperty(){
@@ -526,7 +598,7 @@ public class GraphArea extends Region{
 
 
   /**
-   * 自動的に生成されたプロパティ
+   * 縦方向のグリッド線を表示するかどうかのプロパティ
    * @return
    */
   public BooleanProperty verticalGridLinesVisibleProperty(){
@@ -546,6 +618,55 @@ public class GraphArea extends Region{
 
   private BooleanProperty verticalGridLinesVisibleProperty;
 
+
+
+
+  /**
+   * 横方向minor tickの線の可視性
+   * @return
+   */
+  public BooleanProperty horizontalMinorGridLinesVisibleProperty(){
+    if (horizontalMinorGridLinesVisibleProperty == null) {
+      horizontalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "horizontalMinorGridLinesVisible", false);
+      horizontalMinorGridLines.visibleProperty()
+      .bind(horizontalMinorGridLinesVisibleProperty);
+    }
+    return horizontalMinorGridLinesVisibleProperty;
+  }
+
+  public boolean isHorizontalMinorGridLinesVisible(){
+    return horizontalMinorGridLinesVisibleProperty == null ? false : horizontalMinorGridLinesVisibleProperty.get();
+  }
+
+  public void setHorizontalMinorGridLinesVisible(final boolean value){
+    horizontalMinorGridLinesVisibleProperty().set(value);
+  }
+
+  private BooleanProperty horizontalMinorGridLinesVisibleProperty;
+
+
+  /**
+   * 縦方向minor tickの線の可視性
+   * @return
+   */
+  public BooleanProperty verticalMinorGridLinesVisibleProperty(){
+    if (verticalMinorGridLinesVisibleProperty == null) {
+      verticalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "verticalMinorGridLinesVisible", false);
+      verticalMinorGridLines.visibleProperty()
+      .bind(verticalMinorGridLinesVisibleProperty);
+    }
+    return verticalMinorGridLinesVisibleProperty;
+  }
+
+  public boolean isVerticalMinorGridLinesVisible(){
+    return verticalMinorGridLinesVisibleProperty == null ? false : verticalMinorGridLinesVisibleProperty.get();
+  }
+
+  public void setVerticalMinorGridLinesVisible(final boolean value){
+    verticalMinorGridLinesVisibleProperty().set(value);
+  }
+
+  private BooleanProperty verticalMinorGridLinesVisibleProperty;
   /**
    * 縦方向に相互に背景を塗りつぶすかどうか
    * @return
@@ -594,9 +715,16 @@ public class GraphArea extends Region{
     public void changed(final ObservableValue<? extends LineChartAxis> observable ,
         final LineChartAxis oldValue ,final LineChartAxis newValue){
       final InvalidationListener listener = getPlotValidateListener();
+      final boolean isX = observable == xAxisProperty;
+
       if(oldValue!=null){
         oldValue.lowerValueProperty().removeListener(listener);
         oldValue.upperValueProperty().removeListener(listener);
+        if(isX){
+          verticalMinorGridLines.visibleProperty().unbind();
+        }else{
+          horizontalMinorGridLines.visibleProperty().unbind();
+        }
       }
 
       if(newValue!=null){

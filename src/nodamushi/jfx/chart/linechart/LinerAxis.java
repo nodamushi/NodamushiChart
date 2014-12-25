@@ -12,6 +12,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.text.Text;
 
 public class LinerAxis extends LineChartAxis{
 
@@ -62,6 +63,14 @@ public class LinerAxis extends LineChartAxis{
     return majoursFillU;
   }
 
+  private double computeUpperValue(final double low){
+    final double max = getMaxValue();
+    final double a = getVisibleAmount();
+    final double min = getMinValue();
+    final double ll = max-min;
+    return min(low + ll*a,max);
+  }
+
   @Override
   protected void computeAxisProperties(final double width ,final double height){
     majours.clear();
@@ -77,17 +86,18 @@ public class LinerAxis extends LineChartAxis{
 
     final double len = getAxisLength(width, height);
     lowVal = low;
+    setUpperValue(up);
     {//scroll bar
       final double max = getMaxValue();
       final double min = getMinValue();
       if(low == min && max == up){
-        setScrollBarPosition(-1);
-        setScrollBarSize(1);
+        setScrollBarValue(-1);
+        setScrollVisibleAmount(1);
       }else{
         final double ll = max-min;
         final double l = up-low;
-        setScrollBarPosition((low-min)/ll);
-        setScrollBarSize(l/ll);
+        setScrollBarValue((low-min)/(ll-l));
+        setScrollVisibleAmount(l/ll);
       }
     }
 
@@ -143,11 +153,11 @@ public class LinerAxis extends LineChartAxis{
     final double usize = TICK_UNIT_DEFAULTS[uindex];
     LabelFormat format = getLabelFormat();
     if(format == null){
-      format = new DefaultLabelFormat();
+      format = new DefaultUnitLabelFormat();
       setgetLabelFormat(format);
     }
-    if (format instanceof DefaultLabelFormat) {
-      final DefaultLabelFormat df = (DefaultLabelFormat) format;
+    if (format instanceof DefaultUnitLabelFormat) {
+      final DefaultUnitLabelFormat df = (DefaultUnitLabelFormat) format;
       df.setUnitIndex(uindex);
     }
     final double l = up-low;
@@ -209,7 +219,6 @@ public class LinerAxis extends LineChartAxis{
         if(!find){
           final AxisLabel a = new AxisLabel();
           a.setID(value);
-          //TODO Node作成を外部に委託
           final Node node = format.format(value);
           a.setNode(node);
           labelList.add(a);
@@ -244,10 +253,23 @@ public class LinerAxis extends LineChartAxis{
     lastPUnitSize = Double.NaN;
     unitIndex = -1;
     lowVal = 0;
+    setUpperValue(1);
     final double len = getAxisLength(width, height);
     m = len;
     majours.add(0d);
     majours.add(getAxisLength(width, height));
+    majoursFill.add(true);
+    majoursFill.add(false);
+    final ObservableList<AxisLabel> labels = getLabels();
+    labels.clear();
+    AxisLabel l = new AxisLabel();
+    l.setID(Double.NaN);
+    l.setNode(new Text("0"));
+    labels.add(l);
+    l = new AxisLabel();
+    l.setID(Double.NaN);
+    l.setNode(new Text("1"));
+    labels.add(l);
   }
 
   //----------------------------------------------------------------------

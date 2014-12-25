@@ -171,6 +171,7 @@ public class NLineChart extends Region{
           graphHeight = h;
         }
       }
+
       xAxis.resize(graphWidth, xAxisHeight);
       yAxis.resize(yAxisWidth,graphHeight);
       xAxis.layout();
@@ -288,6 +289,9 @@ public class NLineChart extends Region{
       if(Double.isInfinite(max)) {
         max = min+1;
       }
+
+
+
       final double l = max-min;
       final double ll = l*getRangeMarginY();
       double u = min + ll;
@@ -435,13 +439,13 @@ public class NLineChart extends Region{
       if(oldValue!=null){
         getChildren().remove(oldValue);
         oldValue.lowerValueProperty().removeListener(listener);
-        oldValue.upperValueProperty().removeListener(listener);
+        oldValue.visibleAmountProperty().removeListener(listener);
       }
 
       if(newValue!=null){
         getChildren().add(newValue);
         newValue.lowerValueProperty().addListener(listener);
-        newValue.upperValueProperty().addListener(listener);
+        newValue.visibleAmountProperty().addListener(listener);
 
       }
       if(xAxisProperty == observable){
@@ -597,6 +601,56 @@ public class NLineChart extends Region{
   }
 
   private DoubleProperty rangeMarginYProperty;
+
+
+
+
+  /**
+   * 横方向minor tickの線の可視性
+   * @return
+   */
+  public BooleanProperty horizontalMinorGridLinesVisibleProperty(){
+    if (horizontalMinorGridLinesVisibleProperty == null) {
+      horizontalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "horizontalMinorGridLinesVisible", false);
+      graph.horizontalMinorGridLinesVisibleProperty()
+      .bind(horizontalMinorGridLinesVisibleProperty);
+    }
+    return horizontalMinorGridLinesVisibleProperty;
+  }
+
+  public boolean isHorizontalMinorGridLinesVisible(){
+    return horizontalMinorGridLinesVisibleProperty == null ? false : horizontalMinorGridLinesVisibleProperty.get();
+  }
+
+  public void setHorizontalMinorGridLinesVisible(final boolean value){
+    horizontalMinorGridLinesVisibleProperty().set(value);
+  }
+
+  private BooleanProperty horizontalMinorGridLinesVisibleProperty;
+
+
+  /**
+   * 縦方向minor tickの線の可視性
+   * @return
+   */
+  public BooleanProperty verticalMinorGridLinesVisibleProperty(){
+    if (verticalMinorGridLinesVisibleProperty == null) {
+      verticalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "verticalMinorGridLinesVisible", false);
+      graph.verticalMinorGridLinesVisibleProperty()
+      .bind(verticalMinorGridLinesVisibleProperty);
+    }
+    return verticalMinorGridLinesVisibleProperty;
+  }
+
+  public boolean isVerticalMinorGridLinesVisible(){
+    return verticalMinorGridLinesVisibleProperty == null ? false : verticalMinorGridLinesVisibleProperty.get();
+  }
+
+  public void setVerticalMinorGridLinesVisible(final boolean value){
+    verticalMinorGridLinesVisibleProperty().set(value);
+  }
+
+  private BooleanProperty verticalMinorGridLinesVisibleProperty;
 
 
   /**

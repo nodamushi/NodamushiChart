@@ -104,7 +104,8 @@ public abstract class LineChartAxis extends Region{
         setDataValidate(true);
       }
 
-      if(!isLayoutValidate()){
+      if(!isLayoutValidate() ||
+          width != lastLayoutWidth || height!=lastLayoutHeight){
         layoutAxis(width,height);
         setLayoutValidate(true);
       }
@@ -263,7 +264,6 @@ public abstract class LineChartAxis extends Region{
 
 
 
-
   /**
    * tickと数値ラベルの間の空間。
    * CSS化したい
@@ -403,50 +403,6 @@ public abstract class LineChartAxis extends Region{
 
   private ObjectProperty<Side> sideProperty;
 
-
-//  /**
-//   * Orientationが<b>Vertical</b>の時、左に置くか、右に置くかを指定する
-//   * @return
-//   */
-//  public ObjectProperty<HorizontalDirection> horizontalDirectionProperty(){
-//    if (horizontalDirectionProperty == null) {
-//      horizontalDirectionProperty = new SimpleObjectProperty<>(this, "horizontalDirection", HorizontalDirection.LEFT);
-//    }
-//    return horizontalDirectionProperty;
-//  }
-//
-//  public HorizontalDirection getHorizontalDirection(){
-//    return horizontalDirectionProperty == null ? HorizontalDirection.LEFT : horizontalDirectionProperty.get();
-//  }
-//
-//  public void setHorizontalDirection(final HorizontalDirection value){
-//    horizontalDirectionProperty().set(value);
-//  }
-//
-//  private ObjectProperty<HorizontalDirection> horizontalDirectionProperty;
-//
-//
-//  /**
-//   * Orientationが<b>Horizontal</b>の時、上に置くか、下に置くかを指定する
-//   * @return
-//   */
-//  public ObjectProperty<VerticalDirection> verticalDirectionProperty(){
-//    if (verticalDirectionProperty == null) {
-//      verticalDirectionProperty = new SimpleObjectProperty<>(this, "verticalDirection", VerticalDirection.DOWN);
-//    }
-//    return verticalDirectionProperty;
-//  }
-//
-//  public VerticalDirection getVerticalDirection(){
-//    return verticalDirectionProperty == null ? VerticalDirection.DOWN : verticalDirectionProperty.get();
-//  }
-//
-//  public void setVerticalDirection(final VerticalDirection value){
-//    verticalDirectionProperty().set(value);
-//  }
-//
-//  private ObjectProperty<VerticalDirection> verticalDirectionProperty;
-
   /**
    * データの最大値（表示されているとは限らない）
    * @return
@@ -517,52 +473,67 @@ public abstract class LineChartAxis extends Region{
   private DoubleProperty lowerValueProperty;
 
 
+
+  /**
+   * 表示範囲を0より大、1以下で指定する。
+   * 1の時、全ての範囲が表示され、スクロールバーは非表示になる
+   * 必ずしも、ここで設定した値とscrollVisibleAmountが一致するとは限らない。
+   * @return
+   */
+  public DoubleProperty visibleAmountProperty(){
+    if (visibleAmountProperty == null) {
+      visibleAmountProperty = new SimpleDoubleProperty(this, "visibleAmount", 1){
+        @Override
+        public void set(double newValue){
+          if(newValue > 1) {
+            newValue=1;
+          } else if(newValue<=0) {
+            return;
+          }
+          super.set(newValue);
+        }
+      };
+      visibleAmountProperty.addListener(getDataValidateListener());
+    }
+    return visibleAmountProperty;
+  }
+
+  public double getVisibleAmount(){
+    return visibleAmountProperty == null ? 1 : visibleAmountProperty.get();
+  }
+
+  public void setVisibleAmount(final double value){
+    visibleAmountProperty().set(value);
+  }
+
+  private DoubleProperty visibleAmountProperty;
+
+
+
   /**
    * 実際に表示されている最大値
    * @return
    */
-  public DoubleProperty upperValueProperty(){
-    if (upperValueProperty == null) {
-      upperValueProperty = new SimpleDoubleProperty(this, "upperValue", Double.NaN);
-      upperValueProperty.addListener(getDataValidateListener());
-    }
-    return upperValueProperty;
+  public ReadOnlyDoubleProperty upperValueProperty(){
+    return upperValueWrapper.getReadOnlyProperty();
   }
 
   public double getUpperValue(){
-    return upperValueProperty == null ? Double.NaN : upperValueProperty.get();
+    return upperValueWrapper.get();
   }
 
-  public void setUpperValue(final double value){
-    upperValueProperty().set(value);
+  protected void setUpperValue(final double value){
+    upperValueWrapper.set(value);
   }
 
-  private DoubleProperty upperValueProperty;
-
-  /**
-   * upperValueを実際に利用可能な数値に変換して返す。
-   * （NaNや範囲外ならばmaxValueにする）
-   * @param low 最小値
-   * @return
-   */
-  protected final double computeUpperValue(double low){
-    double d = getUpperValue();
-    final double m = getMaxValue();
-    if(low !=low){
-      low =getMinValue();
-    }
-    if(d!=d) {
-      d = m;
-    }
-    if(d < low) {
-      return low;
-    }
-    if(d > m) {
-      return m;
-    } else {
-      return d;
-    }
+  protected ReadOnlyDoubleWrapper upperValueWrapper(){
+    return upperValueWrapper;
   }
+
+  private ReadOnlyDoubleWrapper upperValueWrapper =
+      new ReadOnlyDoubleWrapper(this, "upperValue", 1);
+
+
   /**
    * lowerValueを実際に利用可能な数値に変換して返す
    * @param up 最大値
@@ -598,79 +569,89 @@ public abstract class LineChartAxis extends Region{
           if(!nowLayout){
             if(scroll!=null&&observable==scroll.valueProperty()){
               final double position = scroll.getValue();
-              final double size = getScrollBarSize();
+              final double size = getScrollVisibleAmount();
               if(position == -1 || size == 1){
                 setLowerValue(Double.NaN);
-                setUpperValue(Double.NaN);
+                setVisibleAmount(1);
               }else{
-                final double max = getMaxValue();
-                final double min = getMinValue();
-                final double l = max-min;
-                final double bar = l*size;
-                final double low = (l-bar)*position + min;
-                final double up = low+bar;
-                setLowerValue(low);
-                setUpperValue(up);
+                final double p = isHorizontal()?position:1-position;
+                final double d=calcLowValue(p, size);
+                setLowerValue(d);
               }
             }else if(scroll!=null){
-              scroll.setValue(getScrollBarPosition());
-            }
+              final double d = isHorizontal()?
+                  getScrollBarValue():
+                    1-getScrollBarValue();
+              scroll.setValue(d);
+             }
           }
         }
       };
     }
     return scrollValueListener;
   }
-
-
-
   /**
-   * 自動的に生成されたプロパティ
+   * スクロールバーが変更されたときに呼び出されるメソッド。
+   * 表示の最小値を計算する。
+   * @param value scrollBarValueに相当する値
+   * @param amount scrollVisibleAmountに相当する値
    * @return
    */
-  protected DoubleProperty scrollBarPositionProperty(){
-    if (scrollBarPositionProperty == null) {
-      scrollBarPositionProperty = new SimpleDoubleProperty(this, "scrollBarPosition", -1);
-      scrollBarPositionProperty.addListener(getScrollValueListener());
-    }
-    return scrollBarPositionProperty;
+  protected double calcLowValue(final double value,final double amount){
+    final double max = getMaxValue();
+    final double min = getMinValue();
+    final double l = max-min;
+    final double bar = l*amount;
+    final double low = (l-bar)*value + min;
+    return low;
   }
 
-  public double getScrollBarPosition(){
-    if(scrollBarPositionProperty == null) {
+  /**
+   * スクロールバーの表示位置のプロパティ。縦方向の場合、1からこの値を引いた値を利用する。
+   * -1の時、非表示となる。
+   * bindする際にはbindBidirectionalを用いること
+   * @return
+   */
+  protected DoubleProperty scrollBarValueProperty(){
+    if (scrollBarValueProperty == null) {
+      scrollBarValueProperty = new SimpleDoubleProperty(this, "scrollBarPosition", -1);
+      scrollBarValueProperty.addListener(getScrollValueListener());
+    }
+    return scrollBarValueProperty;
+  }
+
+  public double getScrollBarValue(){
+    if(scrollBarValueProperty == null) {
       return -1;
     }
-    double v = scrollBarPositionProperty.get();
-    if(getOrientation() == Orientation.VERTICAL){
-      v = 1-v;
-    }
-    return v;
+    return scrollBarValueProperty.get();
   }
 
-  protected void setScrollBarPosition(final double value){
-    scrollBarPositionProperty().set(value);
+  protected void setScrollBarValue(final double value){
+    scrollBarValueProperty().set(value);
   }
 
-  private DoubleProperty scrollBarPositionProperty;
+  private DoubleProperty scrollBarValueProperty;
 
 
   /**
-   * スクロールバーの大きさを0～1で表現する
+   * スクロールバーのvisibleAmountを0～1で表現する。
+   * この値は
    * @return
    */
-  public ReadOnlyDoubleProperty scrollBarSizeProperty(){
-    return scrollBarSizeWrapper().getReadOnlyProperty();
+  public ReadOnlyDoubleProperty scrollVisibleAmountProperty(){
+    return scrollVisibleAmountWrapper().getReadOnlyProperty();
   }
 
-  public double getScrollBarSize(){
+  public double getScrollVisibleAmount(){
     return scrollBarSizeWrapper == null ? 1 : scrollBarSizeWrapper.get();
   }
 
-  protected void setScrollBarSize(final double value){
-    scrollBarSizeWrapper().set(value);
+  protected void setScrollVisibleAmount(final double value){
+    scrollVisibleAmountWrapper().set(value);
   }
 
-  protected ReadOnlyDoubleWrapper scrollBarSizeWrapper(){
+  protected ReadOnlyDoubleWrapper scrollVisibleAmountWrapper(){
     if (scrollBarSizeWrapper == null) {
       scrollBarSizeWrapper = new ReadOnlyDoubleWrapper(this, "scrollBarSize", 1);
       scrollBarSizeWrapper.addListener(getScrollValueListener());
@@ -772,9 +753,10 @@ public abstract class LineChartAxis extends Region{
       final double w1 = linesPrefSize();
       final double w2 = scroll!=null && scroll.isVisible()?scroll.prefWidth(height):0;
 
-
       layoutChildren(lastLayoutWidth, height);
       final double w3 = labelGroup.prefWidth(height);
+
+
       return w1+w2+w3;
     }
   }
@@ -814,24 +796,24 @@ public abstract class LineChartAxis extends Region{
         @Override
         public Boolean call() throws Exception{
           return isScrollBarVisible() &&
-              getScrollBarPosition()!=-1 &&
-              getScrollBarSize()!=1;
+              getScrollBarValue()!=-1 &&
+              getScrollVisibleAmount()!=1;
         }
-      }, scrollBarPositionProperty(),
-      scrollBarVisibleProperty(),scrollBarSizeWrapper()));
+      }, scrollBarValueProperty(),
+      scrollBarVisibleProperty(),scrollVisibleAmountWrapper()));
       scroll.valueProperty().addListener(getScrollValueListener());
       scroll.setMin(0);
       scroll.setMax(1);
-      scroll.visibleAmountProperty().bind(scrollBarSizeProperty());
-      if(getScrollBarPosition()!=-1 && getScrollBarSize()!=1){
+      scroll.visibleAmountProperty().bind(scrollVisibleAmountProperty());
+      if(getScrollBarValue()!=-1 && getScrollVisibleAmount()!=1){
         scroll.setValue(getOrientation()!=Orientation.VERTICAL?
-            getScrollBarPosition():
-              1-getScrollBarPosition());
+            getScrollBarValue():
+              1-getScrollBarValue());
       }
-      //TODO cssのclass
       majorTickPath.getStyleClass().setAll("axis-tick-mark");
       minorTickPath.getStyleClass().setAll("axis-minor-tick-mark");
-      lineGroup.getChildren().addAll(baseLine,majorTickPath,minorTickPath);
+      baseLine.getStyleClass().setAll("axis-line");
+      lineGroup.getChildren().addAll(majorTickPath,minorTickPath,baseLine);
 
       getChildren().addAll(lineGroup,labelGroup,scroll);
     }
@@ -1156,13 +1138,28 @@ public abstract class LineChartAxis extends Region{
   public static interface LabelFormat{
     public Node format(double value);
   }
+
+  public static class SimpleLabelFormat implements LabelFormat{
+    private DecimalFormat integerFormatter =
+        new DecimalFormat("###,###,###,###,###,###");
+    @Override
+    public Node format(final double value){
+      final double f = floor(value);
+      if(f == value){
+        final String str = integerFormatter.format(value);
+        return new Text(str);
+      }
+      return new Text(String.valueOf(value));
+    }
+  }
+
   /**
    *
    * TICK_UNIT_DEFAULTSを利用することが前提のフォーマッタ
    * @author nodemushi
    *
    */
-  protected static class DefaultLabelFormat implements LabelFormat{
+  protected static class DefaultUnitLabelFormat implements LabelFormat{
 
     private DecimalFormat formatter;
     private int index = -1;

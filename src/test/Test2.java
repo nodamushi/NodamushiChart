@@ -1,6 +1,5 @@
 package test;
 
-import static java.lang.Math.*;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
@@ -8,13 +7,15 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
+import nodamushi.jfx.chart.linechart.LogarithmicAxis;
 import nodamushi.jfx.chart.linechart.NLineChart;
+
 /**
- * NLineChartのテスト
+ * 対数グラフのテスト
  * @author nodamushi
  *
  */
-public class Test extends Application{
+public class Test2 extends Application{
   public static void main(final String[] args){
     launch(args);
   }
@@ -22,24 +23,22 @@ public class Test extends Application{
   @Override
   public void start(final Stage stage) throws Exception{
     final LinerAxis axis = new LinerAxis();
-    final LinerAxis yaxis = new LinerAxis();
+    final LogarithmicAxis yaxis = new LogarithmicAxis();
     final NLineChart c = new NLineChart();
+    c.setHorizontalMinorGridLinesVisible(true);
     c.setRangeMarginX(1);
     c.setXAxis(axis);
     c.setYAxis(yaxis);
     axis.setLowerValue(0);
-    axis.setVisibleAmount(0.3);
-    yaxis.setLowerValue(0);
-    yaxis.setVisibleAmount(0.3);
+    axis.setVisibleAmount(0.5);
+//    yaxis.setLowerValue(100);
+//    yaxis.setVisibleAmount(0.5);
     final ObservableList<LineChartData> datas = c.getDatas();
     final LineChartData data = new LineChartData(200);
-    //sinc関数を表示してみる
+    //e^x
     for(int i=0;i<200;i++){
-      final double x = (i-100)*0.1;
-      //x = 0は本当は1だけど、無限のテストもかねて
-      final double y = x==0? Double.POSITIVE_INFINITY:sin(x)/x;
-
-      data.addData(x, y);
+      final double y = i*i;
+      data.addData(i, y);
     }
     datas.add(data);
 
