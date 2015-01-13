@@ -8,7 +8,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
-import nodamushi.jfx.chart.linechart.NLineChart;
+import nodamushi.jfx.chart.linechart.Graph;
 /**
  * NLineChartのテスト
  * @author nodamushi
@@ -23,14 +23,14 @@ public class Test extends Application{
   public void start(final Stage stage) throws Exception{
     final LinerAxis axis = new LinerAxis();
     final LinerAxis yaxis = new LinerAxis();
-    final NLineChart c = new NLineChart();
+    final Graph c = new Graph();
     c.setRangeMarginX(1);
     c.setXAxis(axis);
     c.setYAxis(yaxis);
-    axis.setLowerValue(0);
-    axis.setVisibleAmount(0.3);
-    yaxis.setLowerValue(0);
-    yaxis.setVisibleAmount(0.3);
+//    axis.setLowerValue(0);
+//    axis.setVisibleAmount(0.3);
+//    yaxis.setLowerValue(0);
+//    yaxis.setVisibleAmount(0.3);
     final ObservableList<LineChartData> datas = c.getDatas();
     final LineChartData data = new LineChartData(200);
     //sinc関数を表示してみる
