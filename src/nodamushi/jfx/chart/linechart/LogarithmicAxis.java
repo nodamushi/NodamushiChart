@@ -19,7 +19,7 @@ import javafx.scene.text.TextBoundsType;
  * @author nodamushi
  *
  */
-public class LogarithmicAxis extends LineChartAxis{
+public class LogarithmicAxis extends Axis{
 
   private List<Double>
   majours=new ArrayList<>(10),

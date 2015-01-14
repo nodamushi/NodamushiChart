@@ -14,7 +14,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.text.Text;
 
-public class LinerAxis extends LineChartAxis{
+public class LinerAxis extends Axis{
 
 
 

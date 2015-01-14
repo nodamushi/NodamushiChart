@@ -4,6 +4,7 @@ package nodamushi.jfx.chart.linechart;
 
 import static java.lang.Math.*;
 
+import java.util.BitSet;
 import java.util.List;
 
 import javafx.beans.InvalidationListener;
@@ -38,7 +39,7 @@ import javafx.scene.shape.StrokeLineJoin;
  */
 public class GraphPlotArea extends Region{
   private Rectangle clip;
-  private Group background,plotArea,foreground;
+  private Group background,plotArea,foreground,userBackround,userForeground;
   private Path
   verticalGridLines,horizontalGridLines,
   verticalMinorGridLines,horizontalMinorGridLines,
@@ -54,6 +55,9 @@ public class GraphPlotArea extends Region{
     setClip(clip);
 
     class Group_ extends Group{
+      public Group_(){
+        setAutoSizeChildren(false);
+      }
       @Override
       public void requestLayout(){}
     }
@@ -61,9 +65,8 @@ public class GraphPlotArea extends Region{
     background = new Group_();
     plotArea = new Group_();
     foreground = new Group_();
-    background.setAutoSizeChildren(false);
-    plotArea.setAutoSizeChildren(false);
-    background.setAutoSizeChildren(false);
+    userBackround = new Group_();
+    userForeground = new Group_();
     verticalGridLines = new Path();
     horizontalGridLines=new Path();
     verticalRowFill = new Path();
@@ -83,7 +86,21 @@ public class GraphPlotArea extends Region{
     getChildren().addAll(verticalRowFill,horizontalRowFill,
         verticalMinorGridLines,horizontalMinorGridLines,
         verticalGridLines,horizontalGridLines,
-        background,plotArea,foreground);
+        background,userBackround,plotArea,foreground,userForeground);
+  }
+  /**
+   * ユーザが任意に使える背景領域
+   * @return
+   */
+  public ObservableList<Node> getBackgroundChildren(){
+    return userBackround.getChildren();
+  }
+  /**
+   * ユーザが任意に使える前景領域
+   * @return
+   */
+  public ObservableList<Node> getForegroundChildren(){
+    return userForeground.getChildren();
   }
 
   @Override
@@ -94,8 +111,8 @@ public class GraphPlotArea extends Region{
   }
 
   public void plotData(){
-    final LineChartAxis xaxis = getXAxis();
-    final LineChartAxis yaxis = getYAxis();
+    final Axis xaxis = getXAxis();
+    final Axis yaxis = getYAxis();
 
     if(xaxis == null || yaxis ==null){
       setPlotValidate(true);
@@ -106,7 +123,7 @@ public class GraphPlotArea extends Region{
     //背景の線を描画
 
     V:{
-      final LineChartAxis axis = xaxis;
+      final Axis axis = xaxis;
       final List<Double> vTicks = axis.getMajorTicks();
       final List<Boolean> vFill = axis.getMajorTicksFill();
       final ObservableList<PathElement> lele = verticalGridLines.getElements();
@@ -199,7 +216,7 @@ public class GraphPlotArea extends Region{
     }//end V
 
     H:{
-      final LineChartAxis axis = yaxis;
+      final Axis axis = yaxis;
       final List<Double> hTicks = axis.getMajorTicks();
       final List<Boolean> hFill = axis.getMajorTicksFill();
       final ObservableList<PathElement> lele = horizontalGridLines.getElements();
@@ -289,7 +306,7 @@ public class GraphPlotArea extends Region{
     }//end H
 
     V:{
-      final LineChartAxis axis =xaxis;
+      final Axis axis =xaxis;
       if(!isVerticalMinorGridLinesVisible()){
         verticalMinorGridLines.getElements().clear();
         break V;
@@ -320,7 +337,7 @@ public class GraphPlotArea extends Region{
     }
 
     H:{
-      final LineChartAxis axis =yaxis;
+      final Axis axis =yaxis;
       if(!isHorizontalMinorGridLinesVisible()){
         horizontalMinorGridLines.getElements().clear();
         break H;
@@ -406,6 +423,7 @@ public class GraphPlotArea extends Region{
       }
 
       for(int i=0;i<size;i++){
+        final int defaultColorIndex = 2;
         final LineChartData d = datas.get(i);
         Path p;
         if(i < psize){
@@ -413,13 +431,19 @@ public class GraphPlotArea extends Region{
         }else{
           p = new Path();
           p.setStrokeLineJoin(StrokeLineJoin.BEVEL);
+          //順序とかあるのかね？
           p.getStyleClass().setAll(
               "chart-series-line",
               "series"+i,
-              "default-color"+i//こんなんでええんか？
-              );
+              d.defaultColor);
           paths.add(p);
         }
+        final ObservableList<String> sc = p.getStyleClass();
+
+        if(!sc.get(defaultColorIndex).equals(d.defaultColor)){
+          sc.set(defaultColorIndex, d.defaultColor);
+        }
+
         plotLineChartData(d, p, width, height);
       }
     }
@@ -432,11 +456,11 @@ public class GraphPlotArea extends Region{
     final ObservableList<PathElement> elements = path.getElements();
 
     final int esize = elements.size();
-    final LineChartAxis xaxis = getXAxis();
-    final LineChartAxis yaxis = getYAxis();
+    final Axis xaxis = getXAxis();
+    final Axis yaxis = getYAxis();
     final Orientation orientation = getOrientation();
     if(orientation==Orientation.HORIZONTAL){//x軸方向昇順
-      final LineChartAxis axis = xaxis;
+      final Axis axis = xaxis;
       final double low=axis.getLowerValue();
       final double up =axis.getUpperValue();
       final int start = data.searchXIndex(low, false);
@@ -563,7 +587,135 @@ public class GraphPlotArea extends Region{
         elements.remove(elei, esize);
       }
     }else{
-      //TODO y軸に昇順
+
+      final Axis axis = yaxis;
+      final double low=axis.getLowerValue();
+      final double up =axis.getUpperValue();
+      final int start = data.searchXIndex(low, false);
+      final int end = data.searchXIndex(up, true);
+      boolean moveTo=true;
+      boolean fromInfinit=false;
+      boolean positivInf=false;
+      double beforeX = 0,beforeY=0;
+      int elei=0;
+      for(int i=start;i<=end;i++){
+        double x = data.getX(i);
+        double y = data.getY(i);
+
+        //NaNの場合は線を途切れさせる
+        if(x != x){
+          moveTo = true;
+          fromInfinit = false;
+          continue;
+        }
+        //無限の場合は垂直な線を引く
+        if(Double.isInfinite(x)){
+          //線が途切れていたり、その前も無限の場合は何もしない
+          positivInf = x >0;
+          if(!moveTo && !fromInfinit){
+            beforeY = positivInf?0:height;
+            if(elei<esize){
+              final PathElement pathElement = elements.get(elei);
+              if(pathElement instanceof LineTo){
+                final LineTo m=((LineTo)pathElement);
+                m.setX(beforeX);
+                m.setY(beforeY);
+              }else{
+                final LineTo m=new LineTo(beforeX,beforeY);
+                elements.set(elei, m);
+              }
+              elei++;
+            }else{
+              final LineTo m=new LineTo(beforeX,beforeY);
+              elements.add(m);
+            }
+          }
+          //無限フラグを立てる
+          fromInfinit = true;
+          moveTo=false;
+          //次の処理へ
+          continue;
+        }
+        //実数の処理
+
+        //座標変換
+        x = xaxis.getDisplayPosition(x);
+        y = yaxis.getDisplayPosition(y);
+
+        //前回が無限の時は垂直線を書く
+        if(fromInfinit){
+          beforeY=y;
+          beforeX=positivInf?0:width;
+          if(elei < esize){
+            final PathElement pathElement = elements.get(elei);
+            if(pathElement instanceof MoveTo){//再利用
+              final MoveTo m=((MoveTo)pathElement);
+              m.setX(beforeX);
+              m.setY(y);
+            }else{
+              final MoveTo m=new MoveTo(beforeX,y);
+              elements.set(elei, m);//置換
+            }
+            elei++;
+          }else{
+            final MoveTo m=new MoveTo(beforeX,y);
+            elements.add(m);
+          }
+          moveTo = false;//moveToは不要になる
+        }
+
+        fromInfinit = false;
+
+        if(moveTo){//線が途切れている場合
+          if(elei < esize){
+            final PathElement pathElement = elements.get(elei);
+            if(pathElement instanceof MoveTo){//再利用
+              final MoveTo m=((MoveTo)pathElement);
+              m.setX(x);
+              m.setY(y);
+            }else{
+              final MoveTo m=new MoveTo(x,y);
+              elements.set(elei, m);//置換
+            }
+            elei++;
+          }else{
+            final MoveTo m=new MoveTo(x,y);
+            elements.add(m);
+          }
+          moveTo = false;
+          beforeY=y;
+          beforeX=x;
+        }else{//線が続いている場合
+          final double l = hypot(x-beforeX, y-beforeY);
+          //距離が小さすぎる場合は無視
+          if(l < DISTANCE_THRESHOLD) {
+            continue;
+          }
+          if(elei < esize){
+            final PathElement pathElement = elements.get(elei);
+            if(pathElement instanceof LineTo){
+              final LineTo m=((LineTo)pathElement);
+              m.setX(x);
+              m.setY(y);
+            }else{
+              final LineTo m=new LineTo(x,y);
+              elements.set(elei, m);
+            }
+            elei++;
+          }else{
+            final LineTo m=new LineTo(x,y);
+            elements.add(m);
+          }
+          beforeY=y;
+          beforeX=x;
+        }
+      }//end for
+
+      if(elei < esize){
+        elements.remove(elei, esize);
+      }
+
+
     }
 
   }
@@ -710,10 +862,10 @@ public class GraphPlotArea extends Region{
 
   private BooleanProperty alternativeRowFillVisibleProperty;
 
-  private ChangeListener<LineChartAxis> axisListener =new ChangeListener<LineChartAxis>(){
+  private ChangeListener<Axis> axisListener =new ChangeListener<Axis>(){
     @Override
-    public void changed(final ObservableValue<? extends LineChartAxis> observable ,
-        final LineChartAxis oldValue ,final LineChartAxis newValue){
+    public void changed(final ObservableValue<? extends Axis> observable ,
+        final Axis oldValue ,final Axis newValue){
       final InvalidationListener listener = getPlotValidateListener();
       final boolean isX = observable == xAxisProperty;
 
@@ -743,7 +895,7 @@ public class GraphPlotArea extends Region{
    * x-axis
    * @return
    */
-  public ObjectProperty<LineChartAxis> xAxisProperty(){
+  public ObjectProperty<Axis> xAxisProperty(){
     if (xAxisProperty == null) {
       xAxisProperty = new SimpleObjectProperty<>(this, "xAxis", null);
       xAxisProperty.addListener(axisListener);
@@ -751,15 +903,15 @@ public class GraphPlotArea extends Region{
     return xAxisProperty;
   }
 
-  public LineChartAxis getXAxis(){
+  public Axis getXAxis(){
     return xAxisProperty == null ? null : xAxisProperty.get();
   }
 
-  public void setXAxis(final LineChartAxis value){
+  public void setXAxis(final Axis value){
     xAxisProperty().set(value);
   }
 
-  private ObjectProperty<LineChartAxis> xAxisProperty;
+  private ObjectProperty<Axis> xAxisProperty;
 
 
 
@@ -767,7 +919,7 @@ public class GraphPlotArea extends Region{
    * y-axis
    * @return
    */
-  public ObjectProperty<LineChartAxis> yAxisProperty(){
+  public ObjectProperty<Axis> yAxisProperty(){
     if (yAxisProperty == null) {
       yAxisProperty = new SimpleObjectProperty<>(this, "yAxis", null);
       yAxisProperty.addListener(axisListener);
@@ -775,15 +927,15 @@ public class GraphPlotArea extends Region{
     return yAxisProperty;
   }
 
-  public LineChartAxis getYAxis(){
+  public Axis getYAxis(){
     return yAxisProperty == null ? null : yAxisProperty.get();
   }
 
-  public void setYAxis(final LineChartAxis value){
+  public void setYAxis(final Axis value){
     yAxisProperty().set(value);
   }
 
-  private ObjectProperty<LineChartAxis> yAxisProperty;
+  private ObjectProperty<Axis> yAxisProperty;
 
 
   private ObservableList<GraphLine> backGroundLines,foreGroundLines;
@@ -842,6 +994,7 @@ public class GraphPlotArea extends Region{
   private ObservableList<LineChartData> linechartData;
   private ListChangeListener<LineChartData> dataListListener;
   private InvalidationListener dataListener;
+  private BitSet colorIndex = new BitSet(8);
   protected InvalidationListener getDataListener(){
     if(dataListener == null){
       dataListener = new InvalidationListener(){
@@ -866,9 +1019,13 @@ public class GraphPlotArea extends Region{
           c.next();
           final InvalidationListener dataListener = getDataListener();
           for(final LineChartData d:c.getRemoved()){
+            colorIndex.clear(d.defaultColorIndex);
             d.validateProperty().removeListener(dataListener);
           }
           for(final LineChartData d:c.getAddedSubList()){
+            d.defaultColorIndex = colorIndex.nextClearBit(0);
+            colorIndex.set(d.defaultColorIndex, true);
+            d.defaultColor="default-color"+(d.defaultColorIndex%8);
             d.validateProperty().addListener(dataListener);
           }
         }
@@ -882,11 +1039,15 @@ public class GraphPlotArea extends Region{
       for(final LineChartData d:old){
         d.validateProperty().removeListener(dataListener);
       }
+      colorIndex.clear();
     }
 
     if(datalist!=null){
       datalist.addListener(dataListListener);
       for(final LineChartData d:datalist){
+        d.defaultColorIndex = colorIndex.nextClearBit(0);
+        colorIndex.set(d.defaultColorIndex, true);
+        d.defaultColor="default-color"+(d.defaultColorIndex%8);
         d.validateProperty().addListener(dataListener);
       }
     }

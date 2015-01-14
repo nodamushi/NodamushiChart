@@ -12,6 +12,8 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -25,19 +27,24 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Side;
+import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 
 
 
 /**
- * GraphPlotAreaとLineChartAxisだけのグラフです。
+ * GraphPlotAreaとLineChartAxisだけのグラフです。<br>
+ * データとしてはタイトル情報も保持していますが、タイトルを表示する機能はありません
  * @author nodamushi
  *
  */
 public class Graph extends Region{
 
+  private boolean prelayout=false;
+
   public Graph(){
-    getStyleClass().add("chart");
+    getStyleClass().setAll("chart");
     graph.setAutoPlot(false);
     graph.setLineChartDataList(getDatas());
     graph.xAxisProperty().bind(xAxisProperty());
@@ -49,7 +56,24 @@ public class Graph extends Region{
   }
 
   @Override
+  public void requestLayout(){
+    final Parent p = getParent();
+    if(p!=null && p.getClass().getAnnotation(GraphContainer.class)!=null){
+      p.requestLayout();
+    }
+    super.requestLayout();
+  }
+
+  public void preLayout(final double x,final double y,final double width,final double height){
+    prelayout = true;
+    resizeRelocate(x, y, width, height);
+    layout();
+    prelayout = false;
+  }
+
+  @Override
   protected final void layoutChildren(){
+
 
     final double w = getWidth();
     final double h = getHeight();
@@ -63,7 +87,6 @@ public class Graph extends Region{
     if(!isDataValidate()){
       dealWithData();
     }
-
     final Insets in = getInsets();
     width -=in.getLeft()+in.getRight();
     height -=in.getTop()+in.getBottom();
@@ -121,12 +144,15 @@ public class Graph extends Region{
     }else{
       final double ww = bounds.getWidth();
       final double hh =bounds.getHeight();
-      graph.resizeRelocate(
-          bounds.getMinX(), bounds.getMinY(),
-          ww,hh);
+      final boolean resized = ww != graph.getWidth() || hh!= graph.getHeight();
+      if(!prelayout){
+        graph.resizeRelocate(
+            bounds.getMinX(), bounds.getMinY(),
+            ww,hh);
+      }
       setPlotAreaBounds(bounds);
-      final LineChartAxis xAxis = getXAxis();
-      final LineChartAxis yAxis = getYAxis();
+      final Axis xAxis = getXAxis();
+      final Axis yAxis = getYAxis();
       if(xAxis!=null){
         final double xh=xAxis.prefHeight(ww);
         xAxis.resize(ww, xh);
@@ -145,6 +171,12 @@ public class Graph extends Region{
           yAxis.relocate(bounds.getMaxX(), bounds.getMinY());
         }
       }
+      if(resized || isDataValidate()){
+        if(!prelayout){
+          graph.plotData();
+          setDataValidate(true);
+        }
+      }
     }
   }
 
@@ -153,13 +185,13 @@ public class Graph extends Region{
       graph.setVisible(false);
     }else {
       graph.setVisible(true);
-      final LineChartAxis xAxis = getXAxis();
+      final Axis xAxis = getXAxis();
       xAxis.setOrientation(Orientation.HORIZONTAL);
       if(xAxis.getSide().isVertical()){
         xAxis.setSide(Side.BOTTOM);
       }
 
-      final LineChartAxis yAxis = getYAxis();
+      final Axis yAxis = getYAxis();
       yAxis.setOrientation(Orientation.VERTICAL);
       if(yAxis.getSide().isHorizontal()){
         yAxis.setSide(Side.LEFT);
@@ -238,14 +270,15 @@ public class Graph extends Region{
       final double oldgW = graph.getWidth();
       final double oldgH = graph.getHeight();
       final boolean resize = oldgW != graphWidth || oldgH != graphHeight;
-      if(resize){
-        graph.resize(graphWidth, graphHeight);
+      if(!prelayout){
+        if(resize){
+          graph.resize(graphWidth, graphHeight);
+        }
+        if(resize || !isDataValidate()){
+          graph.plotData();
+          setDataValidate(true);
+        }
       }
-      if(resize || !isDataValidate()){
-        graph.plotData();
-        setDataValidate(true);
-      }
-
       setPlotAreaBounds(new Rectangle2D(x+x0, y+y0, graphWidth, graphHeight));
     }
 
@@ -256,7 +289,7 @@ public class Graph extends Region{
     if(!isAutoRangeX()) {
       return;
     }
-    final LineChartAxis xAxis = getXAxis();
+    final Axis xAxis = getXAxis();
     if(xAxis==null) {
       return;
     }
@@ -303,7 +336,7 @@ public class Graph extends Region{
     if(!isAutoRangeY()) {
       return;
     }
-    final LineChartAxis yAxis = getYAxis();
+    final Axis yAxis = getYAxis();
     if(yAxis==null) {
       return;
     }
@@ -472,10 +505,10 @@ public class Graph extends Region{
 
 
 
-  private ChangeListener<LineChartAxis> axisListener =new ChangeListener<LineChartAxis>(){
+  private ChangeListener<Axis> axisListener =new ChangeListener<Axis>(){
     @Override
-    public void changed(final ObservableValue<? extends LineChartAxis> observable ,
-        final LineChartAxis oldValue ,final LineChartAxis newValue){
+    public void changed(final ObservableValue<? extends Axis> observable ,
+        final Axis oldValue ,final Axis newValue){
       final InvalidationListener listener = getDataValidateListener();
       if(oldValue!=null){
         getChildren().remove(oldValue);
@@ -507,7 +540,7 @@ public class Graph extends Region{
    * x軸
    * @return
    */
-  public ObjectProperty<LineChartAxis> xAxisProperty(){
+  public ObjectProperty<Axis> xAxisProperty(){
     if (xAxisProperty == null) {
       xAxisProperty = new SimpleObjectProperty<>(this, "xAxis", null);
       xAxisProperty.addListener(getDataValidateListener());
@@ -516,15 +549,15 @@ public class Graph extends Region{
     return xAxisProperty;
   }
 
-  public LineChartAxis getXAxis(){
+  public Axis getXAxis(){
     return xAxisProperty == null ? null : xAxisProperty.get();
   }
 
-  public void setXAxis(final LineChartAxis value){
+  public void setXAxis(final Axis value){
     xAxisProperty().set(value);
   }
 
-  private ObjectProperty<LineChartAxis> xAxisProperty;
+  private ObjectProperty<Axis> xAxisProperty;
 
 
 
@@ -556,7 +589,7 @@ public class Graph extends Region{
    * y軸
    * @return
    */
-  public ObjectProperty<LineChartAxis> yAxisProperty(){
+  public ObjectProperty<Axis> yAxisProperty(){
     if (yAxisProperty == null) {
       yAxisProperty = new SimpleObjectProperty<>(this, "yAxis", null);
       yAxisProperty.addListener(getDataValidateListener());
@@ -565,15 +598,15 @@ public class Graph extends Region{
     return yAxisProperty;
   }
 
-  public LineChartAxis getYAxis(){
+  public Axis getYAxis(){
     return yAxisProperty == null ? null : yAxisProperty.get();
   }
 
-  public void setYAxis(final LineChartAxis value){
+  public void setYAxis(final Axis value){
     yAxisProperty().set(value);
   }
 
-  private ObjectProperty<LineChartAxis> yAxisProperty;
+  private ObjectProperty<Axis> yAxisProperty;
 
 
   /**
@@ -772,5 +805,40 @@ public class Graph extends Region{
   = new ReadOnlyObjectWrapper<>(this, "layoutedSize", Point2D.ZERO);
 
 
+
+
+  /**
+   * グラフのタイトル。<br>
+   * 単なるデータであり、表示はされない
+   * @return
+   */
+  public StringProperty titleProperty(){
+    if (titleProperty == null) {
+      titleProperty = new SimpleStringProperty(this, "title", null);
+    }
+    return titleProperty;
+  }
+
+  public String getTitle(){
+    return titleProperty == null ? null : titleProperty.get();
+  }
+
+  public void setTitle(final String value){
+    titleProperty().set(value);
+  }
+
+  private StringProperty titleProperty;
+
+
+  private Label titleLabel;
+  public Label getTitleLabel(){
+    if(titleLabel==null){
+      final Label l = new Label();
+      l.getStyleClass().setAll("chart-title");
+      l.textProperty().bind(titleProperty());
+      titleLabel = l;
+    }
+    return titleLabel;
+  }
 
 }

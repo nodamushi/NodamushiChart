@@ -20,6 +20,9 @@ public class LineChartData{
 
   private static final double[] EMPTY_ARRAY={};
 
+  int defaultColorIndex;
+  String defaultColor;
+
   private double[] x=EMPTY_ARRAY,y=EMPTY_ARRAY;
   private int length = 0;
 
