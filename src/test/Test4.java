@@ -7,6 +7,8 @@ import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import nodamushi.jfx.chart.linechart.Axis;
+import nodamushi.jfx.chart.linechart.AxisZoomHandler;
 import nodamushi.jfx.chart.linechart.Graph;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
@@ -20,8 +22,10 @@ public class Test4 extends Application{
   @Override
   public void start(final Stage stage) throws Exception{
     Graph g1,g2;
+    Axis a,b;
     {
       final LinerAxis axis = new LinerAxis();
+      a = axis;
       final LinerAxis yaxis = new LinerAxis();
       yaxis.setSide(Side.RIGHT);
       axis.setSide(Side.TOP);
@@ -49,6 +53,7 @@ public class Test4 extends Application{
     }
     {
       final LinerAxis axis = new LinerAxis();
+      b = axis;
       final LinerAxis yaxis = new LinerAxis();
       final Graph c = new Graph();
       c.setTitle("sinc(x) * 1000   (*x=0 y=infinity)");
@@ -72,6 +77,15 @@ public class Test4 extends Application{
       datas.add(data);
       g2=c;
     }
+    final AxisZoomHandler zooma = new AxisZoomHandler();
+    zooma.setTargetAxis(a);
+    final AxisZoomHandler zoomb = new AxisZoomHandler();
+    zoomb.setTargetAxis(b);
+    zooma.install(a);
+    zooma.install(g1);
+    zoomb.install(b);
+    zoomb.install(g2);
+    a.bindBidicalScrollProperties(b);
     final BorderPane p = new BorderPane();
     p.setPrefWidth(600);
     p.setPrefHeight(400);

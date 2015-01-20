@@ -24,7 +24,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.ClosePath;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -65,8 +64,8 @@ public class GraphPlotArea extends Region{
     background = new Group_();
     plotArea = new Group_();
     foreground = new Group_();
-    userBackround = new Group_();
-    userForeground = new Group_();
+    userBackround = new Group();
+    userForeground = new Group();
     verticalGridLines = new Path();
     horizontalGridLines=new Path();
     verticalRowFill = new Path();
@@ -368,38 +367,11 @@ public class GraphPlotArea extends Region{
     }
 
     for(int i=0;i<2;i++){
-      final List<GraphLine> lines = i==0?backGroundLines:foreGroundLines;
+      final List<GraphShape> lines = i==0?backGroundShapes:foreGroundShapes;
       if(lines!=null){
-        for(final GraphLine gl:lines){
-          final double v = gl.getValue();
-          final Line l = gl.getLine();
-          if(Double.isInfinite(v)|| v!=v || !gl.isVisible()){
-            l.setVisible(false);
-            continue;
-          }
-          if(gl.getOrientation()!=Orientation.VERTICAL){
-            //横方向
-            final double y=yaxis.getDisplayPosition(v);
-            if(Double.isInfinite(y)|| y!=y|| y<0 || y>h){
-              l.setVisible(false);
-              continue;
-            }
-            l.setStartX(0);
-            l.setEndX(w);
-            l.setStartY(y);
-            l.setEndY(y);
-          }else{
-            final double x=xaxis.getDisplayPosition(v);
-            if(Double.isInfinite(x) || x!=x || x <0 || x >w){
-              l.setVisible(false);
-              continue;
-            }
-            l.setStartY(0);
-            l.setEndY(h);
-            l.setStartX(x);
-            l.setEndX(x);
-          }
-          l.setVisible(true);
+        for(final GraphShape gl:lines){
+          gl.setNodeProperty(gl.getAxisOrientation()==Orientation.HORIZONTAL?
+              xaxis:yaxis, w, h);
         }
       }
     }
@@ -938,21 +910,21 @@ public class GraphPlotArea extends Region{
   private ObjectProperty<Axis> yAxisProperty;
 
 
-  private ObservableList<GraphLine> backGroundLines,foreGroundLines;
-  public ObservableList<GraphLine> getBackGroundLine(){
-    if(backGroundLines == null){
-      backGroundLines = FXCollections.observableArrayList();
-      final ListChangeListener<GraphLine> l =new ListChangeListener<GraphLine>(){
+  private ObservableList<GraphShape> backGroundShapes,foreGroundShapes;
+  public ObservableList<GraphShape> getBackGroundShapes(){
+    if(backGroundShapes == null){
+      backGroundShapes = FXCollections.observableArrayList();
+      final ListChangeListener<GraphShape> l =new ListChangeListener<GraphShape>(){
         @Override
-        public void onChanged(final Change<? extends GraphLine> c){
+        public void onChanged(final Change<? extends GraphShape> c){
           c.next();
           final Group g = background;
           final ObservableList<Node> ch = g.getChildren();
-          for(final GraphLine gl: c.getRemoved()){
-            ch.remove(gl.getLine());
+          for(final GraphShape gl: c.getRemoved()){
+            ch.remove(gl.getNode());
           }
-          for(final GraphLine gl: c.getAddedSubList()){
-            ch.add(gl.getLine());
+          for(final GraphShape gl: c.getAddedSubList()){
+            ch.add(gl.getNode());
           }
           if(isPlotValidate()){
             setPlotValidate(false);
@@ -960,25 +932,25 @@ public class GraphPlotArea extends Region{
           }
         }
       };
-      backGroundLines.addListener(l);
+      backGroundShapes.addListener(l);
     }
-    return backGroundLines;
+    return backGroundShapes;
   }
 
-  public ObservableList<GraphLine> getForeGroundLine(){
-    if(foreGroundLines == null){
-      foreGroundLines = FXCollections.observableArrayList();
-      final ListChangeListener<GraphLine> l =new ListChangeListener<GraphLine>(){
+  public ObservableList<GraphShape> getForeGroundShapes(){
+    if(foreGroundShapes == null){
+      foreGroundShapes = FXCollections.observableArrayList();
+      final ListChangeListener<GraphShape> l =new ListChangeListener<GraphShape>(){
         @Override
-        public void onChanged(final Change<? extends GraphLine> c){
+        public void onChanged(final Change<? extends GraphShape> c){
           c.next();
           final Group g = foreground;
           final ObservableList<Node> ch = g.getChildren();
-          for(final GraphLine gl: c.getRemoved()){
-            ch.remove(gl.getLine());
+          for(final GraphShape gl: c.getRemoved()){
+            ch.remove(gl.getNode());
           }
-          for(final GraphLine gl: c.getAddedSubList()){
-            ch.add(gl.getLine());
+          for(final GraphShape gl: c.getAddedSubList()){
+            ch.add(gl.getNode());
           }
           if(isPlotValidate()){
             setPlotValidate(false);
@@ -986,9 +958,9 @@ public class GraphPlotArea extends Region{
           }
         }
       };
-      foreGroundLines.addListener(l);
+      foreGroundShapes.addListener(l);
     }
-    return foreGroundLines;
+    return foreGroundShapes;
   }
 
   private ObservableList<LineChartData> linechartData;
@@ -1160,7 +1132,7 @@ public class GraphPlotArea extends Region{
 
 
   public void showVerticalZeroLine(){
-    final ObservableList<GraphLine> backGroundLine = getBackGroundLine();
+    final ObservableList<GraphShape> backGroundLine = getBackGroundShapes();
     final GraphLine l = getVerticalZeroLine();
     l.setVisible(true);
     if(!backGroundLine.contains(l)){
@@ -1168,7 +1140,7 @@ public class GraphPlotArea extends Region{
     }
   }
   public void showHorizontalZeroLine(){
-    final ObservableList<GraphLine> backGroundLine = getBackGroundLine();
+    final ObservableList<GraphShape> backGroundLine = getBackGroundShapes();
     final GraphLine l = getHorizontalZeroLine();
     l.setVisible(true);
     if(!backGroundLine.contains(l)){

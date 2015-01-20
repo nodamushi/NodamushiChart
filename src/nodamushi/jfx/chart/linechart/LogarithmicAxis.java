@@ -38,6 +38,23 @@ public class LogarithmicAxis extends Axis{
     log10(6),log10(7),log10(8),log10(9)
   };
 
+  @Override
+  public void adjustLowerValue(){
+    final double min = getMinValue(),max = getMaxValue();
+    double low = computeLowerValue(max);
+    final double a = getVisibleAmount();
+    final double logmin = log10(min),logmax = log10(max);
+    double loglow = log10(low);
+
+    final double l = logmax-logmin;
+    final double logup = loglow+l*a;
+    if(logup > logmax){
+      loglow = logmax-l*a;
+      low = pow(10, loglow);
+      setLowerValue(low);
+    }
+  }
+
   private double computeLogUpperValue(final double logmax,final double logmin,final double loglow){
     final double a = getVisibleAmount();
     final double l = logmax-logmin;
@@ -50,7 +67,7 @@ public class LogarithmicAxis extends Axis{
     minors.clear();
     majoursFill.clear();
     double min = getMinValue(),max = getMaxValue();
-    double low = computeLowerValue(Double.NaN);
+    double low = computeLowerValue(max);
     final double defaultMin = getDefaultMinValue();
     if(min <=0){
       min = defaultMin;

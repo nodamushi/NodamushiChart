@@ -106,7 +106,7 @@ public class Graph extends Region{
   @Override
   protected double computePrefWidth(final double height){return 150;}
 
-  private GraphPlotArea graph=new GraphPlotArea();
+  GraphPlotArea graph=new GraphPlotArea();
 
   public <T extends Event> void addEventHandlerToGraphArea(
       final EventType<T> eventType, final EventHandler<? super T> eventHandler){
@@ -171,7 +171,7 @@ public class Graph extends Region{
           yAxis.relocate(bounds.getMaxX(), bounds.getMinY());
         }
       }
-      if(resized || isDataValidate()){
+      if(resized || !isDataValidate()){
         if(!prelayout){
           graph.plotData();
           setDataValidate(true);
@@ -242,7 +242,8 @@ public class Graph extends Region{
           graphHeight = h;
         }
       }
-
+      graphHeight = max(0, graphHeight);
+      graphWidth = max(0,graphWidth);
       xAxis.resize(graphWidth, xAxisHeight);
       yAxis.resize(yAxisWidth,graphHeight);
       xAxis.layout();
@@ -279,6 +280,7 @@ public class Graph extends Region{
           setDataValidate(true);
         }
       }
+
       setPlotAreaBounds(new Rectangle2D(x+x0, y+y0, graphWidth, graphHeight));
     }
 

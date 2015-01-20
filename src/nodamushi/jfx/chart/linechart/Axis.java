@@ -12,6 +12,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,6 +29,7 @@ import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Line;
@@ -334,6 +336,107 @@ public abstract class Axis extends Region{
 
   private BooleanProperty scrollBarVisibleProperty;
 
+
+
+  private static void unbind(final Property<?> p){
+    if(p.isBound()){
+      p.unbind();
+    }
+  }
+  private InvalidationListener scrollbarBindListener = null;
+  private Axis scrollbarBindTarget=null;
+  /**
+   * スクロールバーに関連するプロパティをbindします。<br>
+   * その際、プロパティのbindメソッドは利用しません。
+   * @param a bind対象。nullの場合はunbindだけする。
+   */
+  public void bindBidicalScrollProperties(final Axis a){
+    if(a==null){
+      return;
+    }
+    unbindBidicalScrollPropertyies();
+    a.unbindBidicalScrollPropertyies();
+    final InvalidationListener listener = new InvalidationListener(){
+      private boolean
+//      b1=true,
+      b2=true,
+      b3=true;
+      @Override
+      public void invalidated(final Observable observable){
+        final Property<?> p = (Property<?>)observable;
+        switch(p.getName()){
+//          case "scrollBarVisible":
+//            if(b1){
+//              b1 = false;
+//              if(p.getBean() == Axis.this){
+//                a.setScrollBarVisible(isScrollBarVisible());
+//              }else{
+//                setScrollBarVisible(a.isScrollBarVisible());
+//              }
+//              b1 = true;
+//            }
+//            break;
+          case "visibleAmount":
+            if(b2){
+              b2 = false;
+              if(p.getBean() == Axis.this){
+                a.setVisibleAmount(getVisibleAmount());
+              }else{
+                setVisibleAmount(a.getVisibleAmount());
+              }
+              b2 = true;
+            }
+
+            break;
+          case "lowerValue":
+            if(b3){
+              b3 = false;
+              if(p.getBean() == Axis.this){
+                a.setLowerValue(getLowerValue());
+              }else{
+                setLowerValue(a.getLowerValue());
+              }
+              b3 = true;
+            }
+            break;
+        }
+      }
+    };
+//    scrollBarVisibleProperty().addListener(listener);
+//    a.scrollBarVisibleProperty().addListener(listener);
+    visibleAmountProperty().addListener(listener);
+    a.visibleAmountProperty().addListener(listener);
+    lowerValueProperty().addListener(listener);
+    a.lowerValueProperty().addListener(listener);
+    scrollbarBindListener=listener;
+    a.scrollbarBindListener=listener;
+    scrollbarBindTarget=a;
+    a.scrollbarBindTarget=this;
+  }
+
+
+  public void unbindBidicalScrollPropertyies(){
+//    unbind(scrollBarVisibleProperty());
+    unbind(visibleAmountProperty());
+    unbind(lowerValueProperty());
+    if(scrollbarBindListener!=null){
+      _unbindScrollProp();
+      if(scrollbarBindTarget!=null){
+        scrollbarBindTarget._unbindScrollProp();
+        scrollbarBindTarget.scrollbarBindTarget=null;
+      }
+      scrollbarBindTarget=null;
+    }
+  }
+
+  private void _unbindScrollProp(){
+//    scrollBarVisibleProperty().removeListener(scrollbarBindListener);
+    visibleAmountProperty().removeListener(scrollbarBindListener);
+    lowerValueProperty().removeListener(scrollbarBindListener);
+    scrollbarBindListener=null;
+  }
+
+
   //-----------------layoutにしか関係ないデータここまで--------------------
 
 
@@ -472,6 +575,11 @@ public abstract class Axis extends Region{
 
   private DoubleProperty lowerValueProperty;
 
+  /**
+   * visibleAmountで設定する範囲が全て見えるような「最大の」最小値を設定する。<br>
+   * visibleAmountが全て見えている場合には処理を行わない。
+   */
+  public abstract void adjustLowerValue();
 
 
   /**
@@ -564,6 +672,7 @@ public abstract class Axis extends Region{
   private InvalidationListener getScrollValueListener(){
     if(scrollValueListener == null){
       scrollValueListener = new InvalidationListener(){
+        private boolean doflag = true;
         @Override
         public void invalidated(final Observable observable){
           if(!nowLayout){
@@ -583,7 +692,14 @@ public abstract class Axis extends Region{
                   getScrollBarValue():
                     1-getScrollBarValue();
               scroll.setValue(d);
-             }
+            }
+          }else if(doflag && scroll!=null && observable!=scroll.valueProperty()){
+            doflag=false;
+            final double d = isHorizontal()?
+                getScrollBarValue():
+                  1-getScrollBarValue();
+            scroll.setValue(d);
+            doflag = true;
           }
         }
       };
@@ -714,6 +830,7 @@ public abstract class Axis extends Region{
   private Path majorTickPath,minorTickPath;
   private Line baseLine;
   private ScrollBar scroll;
+  private Label nameLabel;
 
   private ObservableList<AxisLabel> labels;
 
@@ -751,13 +868,16 @@ public abstract class Axis extends Region{
       return 150d;
     }else{
       final double w1 = linesPrefSize();
-      final double w2 = scroll!=null && scroll.isVisible()?scroll.prefWidth(height):0;
-
       layoutChildren(lastLayoutWidth, height);
+      final double w2 = scroll.isVisible()?scroll.getWidth():0;
+
       final double w3 = labelGroup.prefWidth(height);
+      double w4 = 0;
+      if(nameLabel.isVisible()){
+        w4 = nameLabel.getHeight()+5;
+      }
 
-
-      return w1+w2+w3;
+      return w1+w2+w3 +w4;
     }
   }
 
@@ -767,11 +887,16 @@ public abstract class Axis extends Region{
       return 150d;
     }else{
       final double h1 = linesPrefSize();
-      final double h2 = scroll!=null && scroll.isVisible()? scroll.prefHeight(width):0;
 
       layoutChildren(width, lastLayoutHeight);
+      final double h2 = scroll.isVisible()? scroll.getHeight():0;
       final double h3 = labelGroup.prefHeight(width);
-      return h1+h2+h3;
+      double h4 = 0;
+      if(nameLabel.isVisible()){
+        h4 = nameLabel.getHeight()+5;
+      }
+
+      return h1+h2+h3+h4;
     }
   }
 
@@ -784,6 +909,8 @@ public abstract class Axis extends Region{
     if(lineGroup == null){
       lineGroup = new Group();
       lineGroup.setAutoSizeChildren(false);
+      nameLabel = new Label();
+      nameLabel.textProperty().bind(nameProperty());
       labelGroup.setAutoSizeChildren(false);
       majorTickPath = new Path();
       minorTickPath = new Path();
@@ -801,6 +928,7 @@ public abstract class Axis extends Region{
         }
       }, scrollBarValueProperty(),
       scrollBarVisibleProperty(),scrollVisibleAmountWrapper()));
+      scroll.visibleProperty().addListener(getLayoutValidateListener());
       scroll.valueProperty().addListener(getScrollValueListener());
       scroll.setMin(0);
       scroll.setMax(1);
@@ -815,7 +943,7 @@ public abstract class Axis extends Region{
       baseLine.getStyleClass().setAll("axis-line");
       lineGroup.getChildren().addAll(majorTickPath,minorTickPath,baseLine);
 
-      getChildren().addAll(lineGroup,labelGroup,scroll);
+      getChildren().addAll(lineGroup,labelGroup,scroll,nameLabel);
     }
 
     layoutLines(width,height);
@@ -927,58 +1055,94 @@ public abstract class Axis extends Region{
 
   private void layoutGroups(final double width,final double height){
     final boolean ish = isHorizontal();
+    final String n = getName();
+    nameLabel.setVisible(n!=null && !n.isEmpty());
+
     if(ish){
+      nameLabel.setRotate(0);
       if(getSide()!=Side.TOP){//BOTTOM
         double y = 0;
         if(scroll.isVisible()){
           y = scroll.prefHeight(-1);
-          scroll.resizeRelocate(0, y, width, y);
+          scroll.resizeRelocate(0, 0, width, y);
         }
         lineGroup.setLayoutX(0);
-        lineGroup.setLayoutY(y);
+        lineGroup.setLayoutY(floor(y));
         y+=lineGroup.prefHeight(-1)+getTickLabelGap();
         labelGroup.setLayoutX(0);
-        labelGroup.setLayoutY(y);
+        labelGroup.setLayoutY(floor(y));
+        if(nameLabel.isVisible()){
+          y+=labelGroup.prefHeight(-1)+5;
+          final double w = min(nameLabel.prefWidth(-1),width);
+          final double h = nameLabel.prefHeight(w);
+          nameLabel.resize(w, h);
+          nameLabel.relocate(floor((width-nameLabel.getWidth())*0.5), floor(y));
+        }
       }else{
         double y = height;
         if(scroll.isVisible()){
           final double h = scroll.prefHeight(-1);
           y -= h;
-          scroll.resizeRelocate(0, y, width, h);
+          scroll.resizeRelocate(0, floor(y), width, h);
         }
         lineGroup.setLayoutX(0);
-        lineGroup.setLayoutY(y);
+        lineGroup.setLayoutY(floor(y));
         y-=lineGroup.prefHeight(-1)+getTickLabelGap();
         labelGroup.setLayoutX(0);
-        labelGroup.setLayoutY(y);
+        labelGroup.setLayoutY(floor(y));
+        if(nameLabel.isVisible()){
+          y-=labelGroup.prefHeight(-1)+5;
+          final double w = min(nameLabel.prefWidth(-1),width);
+          final double h = nameLabel.prefHeight(w);
+          nameLabel.resize(w, h);
+          nameLabel.relocate(floor((width-nameLabel.getWidth())*0.5), floor(y));
+        }
       }
     }else{
       if(getSide()!=Side.RIGHT){//LEFT
+        nameLabel.setRotate(-90);
         double x = width;
         if(scroll.isVisible()){
           final double w = scroll.prefWidth(-1);
           x = x-w;
-          scroll.resizeRelocate(x, 0, w, height);
+          scroll.resizeRelocate(floor(x), 0, w, height);
         }
 
-        lineGroup.setLayoutX(x);
+        lineGroup.setLayoutX(floor(x));
         lineGroup.setLayoutY(0);
         x -= getTickLabelGap()+lineGroup.prefWidth(-1);
-        labelGroup.setLayoutX(x);
+        labelGroup.setLayoutX(floor(x));
         labelGroup.setLayoutY(0);
+        if(nameLabel.isVisible()){
+          final double w = min(nameLabel.prefWidth(-1),height);
+          final double h = nameLabel.prefHeight(w);
+          nameLabel.resize(w, h);
+          final Bounds b = nameLabel.getBoundsInParent();
+          x-=labelGroup.prefWidth(-1)+5+b.getWidth();
+          nameLabel.relocate(floor(x-b.getMinX()+nameLabel.getLayoutX()), floor((height-b.getHeight())*0.5-b.getMinY()+nameLabel.getLayoutY()));
+        }
       }else{
+        nameLabel.setRotate(90);
         double x = 0;
         if(scroll.isVisible()){
           final double w = scroll.prefWidth(-1);
           x = w;
-          scroll.resizeRelocate(x, 0, w, height);
+          scroll.resizeRelocate(0, 0, w, height);
         }
 
-        lineGroup.setLayoutX(x);
+        lineGroup.setLayoutX(floor(x));
         lineGroup.setLayoutY(0);
         x = getTickLabelGap()+lineGroup.prefWidth(-1);
-        labelGroup.setLayoutX(x);
+        labelGroup.setLayoutX(floor(x));
         labelGroup.setLayoutY(0);
+        if(nameLabel.isVisible()){
+          final double w = min(nameLabel.prefWidth(-1),height);
+          final double h = nameLabel.prefHeight(w);
+          nameLabel.resize(w, h);
+          final Bounds b = nameLabel.getBoundsInParent();
+          x+=labelGroup.prefWidth(-1)+5;
+          nameLabel.relocate(floor(x-b.getMinX()+nameLabel.getLayoutX()), floor((height-b.getHeight())*0.5-b.getMinY()+nameLabel.getLayoutY()));
+        }
       }
     }
 
@@ -1109,6 +1273,16 @@ public abstract class Axis extends Region{
       };
     }
     return layoutValidateListener;
+  }
+
+
+  @Override
+  public void requestLayout(){
+    final Parent p = getParent();
+    if(p!=null){
+      p.requestLayout();
+    }
+    super.requestLayout();
   }
 
   protected boolean isLayoutValidate(){

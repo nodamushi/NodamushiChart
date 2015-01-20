@@ -17,11 +17,46 @@ import javafx.scene.shape.Line;
  * @author nodamushi
  *
  */
-public class GraphLine{
+public class GraphLine implements GraphShape{
   private Line line =new Line();
 
-  public Line getLine(){
+  @Override
+  public Line getNode(){
     return line;
+  }
+
+  @Override
+  public void setNodeProperty(final Axis axis ,final double w ,final double h){
+    final double v = getValue();
+    final Line l = getNode();
+    if(Double.isInfinite(v)|| v!=v || !isVisible()){
+      l.setVisible(false);
+      return;
+    }
+    if(getOrientation()!=Orientation.VERTICAL){
+      //横方向
+      final double y=axis.getDisplayPosition(v);
+      if(Double.isInfinite(y)|| y!=y|| y<0 || y>h){
+        l.setVisible(false);
+        return;
+      }
+      l.setStartX(0);
+      l.setEndX(w);
+      l.setStartY(y);
+      l.setEndY(y);
+    }else{
+      final double x=axis.getDisplayPosition(v);
+      if(Double.isInfinite(x) || x!=x || x <0 || x >w){
+        l.setVisible(false);
+        return;
+      }
+      l.setStartY(0);
+      l.setEndY(h);
+      l.setStartX(x);
+      l.setEndX(x);
+    }
+    l.setVisible(true);
+
   }
 
   /**
@@ -56,7 +91,7 @@ public class GraphLine{
 
 
   /**
-   * 自動的に生成されたプロパティ
+   * 可視性
    * @return
    */
   public BooleanProperty visibleProperty(){
@@ -106,6 +141,11 @@ public class GraphLine{
 
   public Orientation getOrientation(){
     return orientationProperty == null ? null : orientationProperty.get();
+  }
+
+  @Override
+  public Orientation getAxisOrientation(){
+    return getOrientation()==Orientation.VERTICAL?Orientation.HORIZONTAL:Orientation.VERTICAL;
   }
 
   public void setOrientation(final Orientation value){

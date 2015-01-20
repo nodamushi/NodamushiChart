@@ -63,6 +63,20 @@ public class LinerAxis extends Axis{
     return majoursFillU;
   }
 
+  @Override
+  public void adjustLowerValue(){
+    final double max = getMaxValue();
+    final double a = getVisibleAmount();
+    final double min = getMinValue();
+    final double ll = max-min;
+    double low = computeLowerValue(max);
+    final double up=low + ll*a;
+    if(up>max){
+      low = max-ll*a;
+      setLowerValue(low);
+    }
+  }
+
   private double computeUpperValue(final double low){
     final double max = getMaxValue();
     final double a = getVisibleAmount();
@@ -79,12 +93,12 @@ public class LinerAxis extends Axis{
 
     final double low = computeLowerValue(getMaxValue());
     final double up = computeUpperValue(low);
-    if(low == up || low != low || up!=up){
+    final double len = getAxisLength(width, height);
+    if(low == up || low != low || up!=up || len <= 0){
       noData(width,height);
       return;
     }
 
-    final double len = getAxisLength(width, height);
     lowVal = low;
     setUpperValue(up);
     {//scroll bar

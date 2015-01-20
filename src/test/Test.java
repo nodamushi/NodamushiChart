@@ -6,9 +6,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import nodamushi.jfx.chart.linechart.AxisZoomHandler;
+import nodamushi.jfx.chart.linechart.Graph;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
-import nodamushi.jfx.chart.linechart.Graph;
 /**
  * NLineChartのテスト
  * @author nodamushi
@@ -23,6 +24,12 @@ public class Test extends Application{
   public void start(final Stage stage) throws Exception{
     final LinerAxis axis = new LinerAxis();
     final LinerAxis yaxis = new LinerAxis();
+    axis.setName("ももも");
+    yaxis.setName("まままfasdfasdfadsfasdfdas");
+    final AxisZoomHandler zoom = new AxisZoomHandler();
+//    axis.setLowerValue(0);
+    zoom.install(axis);
+    zoom.install(yaxis);
     final Graph c = new Graph();
     c.setRangeMarginX(1);
     c.setXAxis(axis);
