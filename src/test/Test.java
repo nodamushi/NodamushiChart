@@ -7,7 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.AxisZoomHandler;
-import nodamushi.jfx.chart.linechart.Graph;
+import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
 /**
@@ -30,7 +30,7 @@ public class Test extends Application{
 //    axis.setLowerValue(0);
     zoom.install(axis);
     zoom.install(yaxis);
-    final Graph c = new Graph();
+    final LineChart c = new LineChart();
     c.setRangeMarginX(1);
     c.setXAxis(axis);
     c.setYAxis(yaxis);

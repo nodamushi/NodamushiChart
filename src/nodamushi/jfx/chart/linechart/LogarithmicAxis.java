@@ -84,7 +84,7 @@ public class LogarithmicAxis extends Axis{
     final double l = getAxisLength(width, height);
 
 
-    if(min == max ||  l==0){
+    if(min == max ||  l<=0){
       length = 1;
       loglow = 1;
       logup = 2;

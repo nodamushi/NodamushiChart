@@ -39,11 +39,11 @@ import javafx.scene.layout.Region;
  * @author nodamushi
  *
  */
-public class Graph extends Region{
+public class LineChart extends Region{
 
   private boolean prelayout=false;
 
-  public Graph(){
+  public LineChart(){
     getStyleClass().setAll("chart");
     graph.setAutoPlot(false);
     graph.setLineChartDataList(getDatas());

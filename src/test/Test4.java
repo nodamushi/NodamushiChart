@@ -9,7 +9,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.Axis;
 import nodamushi.jfx.chart.linechart.AxisZoomHandler;
-import nodamushi.jfx.chart.linechart.Graph;
+import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
 import nodamushi.jfx.chart.linechart.VGraphs;
@@ -21,7 +21,7 @@ public class Test4 extends Application{
 
   @Override
   public void start(final Stage stage) throws Exception{
-    Graph g1,g2;
+    LineChart g1,g2;
     Axis a,b;
     {
       final LinerAxis axis = new LinerAxis();
@@ -29,7 +29,7 @@ public class Test4 extends Application{
       final LinerAxis yaxis = new LinerAxis();
       yaxis.setSide(Side.RIGHT);
       axis.setSide(Side.TOP);
-      final Graph c = new Graph();
+      final LineChart c = new LineChart();
       c.setTitle("sinc(x)   (*x=0 y=infinity)");
       c.setRangeMarginX(1);
       c.setXAxis(axis);
@@ -55,7 +55,7 @@ public class Test4 extends Application{
       final LinerAxis axis = new LinerAxis();
       b = axis;
       final LinerAxis yaxis = new LinerAxis();
-      final Graph c = new Graph();
+      final LineChart c = new LineChart();
       c.setTitle("sinc(x) * 1000   (*x=0 y=infinity)");
       c.setRangeMarginX(1);
       c.setXAxis(axis);

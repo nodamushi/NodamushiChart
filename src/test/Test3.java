@@ -13,7 +13,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
-import nodamushi.jfx.chart.linechart.Graph;
+import nodamushi.jfx.chart.linechart.LineChart;
 /**
  * NLineChartのテスト
  * @author nodamushi
@@ -32,7 +32,7 @@ public class Test3 extends Application{
   public void start(final Stage stage) throws Exception{
     final LinerAxis axis = new LinerAxis();
     final LinerAxis yaxis = new LinerAxis();
-    final Graph c = new Graph();
+    final LineChart c = new LineChart();
     c.setRangeMarginX(1);
     c.setXAxis(axis);
     c.setYAxis(yaxis);

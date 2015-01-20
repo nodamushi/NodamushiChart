@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
 import nodamushi.jfx.chart.linechart.LogarithmicAxis;
-import nodamushi.jfx.chart.linechart.Graph;
+import nodamushi.jfx.chart.linechart.LineChart;
 
 /**
  * 対数グラフのテスト
@@ -24,7 +24,7 @@ public class Test2 extends Application{
   public void start(final Stage stage) throws Exception{
     final LinerAxis axis = new LinerAxis();
     final LogarithmicAxis yaxis = new LogarithmicAxis();
-    final Graph c = new Graph();
+    final LineChart c = new LineChart();
     c.setHorizontalMinorGridLinesVisible(true);
     c.setRangeMarginX(1);
     c.setXAxis(axis);

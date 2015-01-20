@@ -910,6 +910,7 @@ public abstract class Axis extends Region{
       lineGroup = new Group();
       lineGroup.setAutoSizeChildren(false);
       nameLabel = new Label();
+      nameLabel.getStyleClass().add("axis-label");
       nameLabel.textProperty().bind(nameProperty());
       labelGroup.setAutoSizeChildren(false);
       majorTickPath = new Path();
