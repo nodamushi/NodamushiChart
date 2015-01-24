@@ -1,6 +1,6 @@
 package nodamushi.jfx.chart.linechart;
 
-import javafx.geometry.Orientation;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.scene.Node;
 
 public interface GraphShape{
@@ -9,19 +9,25 @@ public interface GraphShape{
    * @return
    */
   public Node getNode();
-  /**
-   * 値を変換するのに必要なaxisの方向。
-   * HORIZONTALならばx軸を、そうでなければy軸を渡す。
-   * @return
-   */
-  public Orientation getAxisOrientation();
 
   /**
    * 必要な値をaxisから座標に変換し、設定する。
-   * @param axis
+   * このメソッドが呼ばれたときにisValidateの返す値がtrueになるようにすること。
+   * @param xaxis
+   * @param yaxis
    * @param w 表示領域の幅
    * @param h 表示領域の高さ
    */
-  public void setNodeProperty(Axis axis,double w,double h);
+  public void setNodeProperty(Axis xaxis,Axis yaxis,double w,double h);
 
+  /**
+   * 値が正当かどうか。この値がfalseに変わると、GraphPlotAreaはsetNodePropertyを呼び出す
+   * @return
+   */
+  public ReadOnlyBooleanProperty validateProperty();
+  /**
+   * 値が正当かどうか。この値がfalseに変わると、GraphPlotAreaはsetNodePropertyを呼び出す
+   * @return
+   */
+  public boolean isValidate();
 }

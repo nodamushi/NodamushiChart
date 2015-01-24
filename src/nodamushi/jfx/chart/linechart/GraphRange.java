@@ -11,64 +11,62 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.shape.Rectangle;
 
-public class GraphRange implements GraphShape{
+public class GraphRange extends AbstractGraphShape{
 
-  private Rectangle rect = new Rectangle();
+  private Rectangle rect;
 
   @Override
   public Rectangle getNode(){
+    if(rect == null){
+      rect = new Rectangle();
+    }
     return rect;
   }
 
   public ObservableList<String> getStyleClass(){
-    return rect.getStyleClass();
+    return getNode().getStyleClass();
   }
 
   /**
    * 方向
    * @return
    */
-  public ObjectProperty<Orientation> orientationProperty(){
+  public final ObjectProperty<Orientation> orientationProperty(){
     if (orientationProperty == null) {
       orientationProperty = new SimpleObjectProperty<>(this, "orientation", Orientation.HORIZONTAL);
+      orientationProperty.addListener(getValidateListener());
     }
     return orientationProperty;
   }
 
-  public Orientation getOrientation(){
+  public final Orientation getOrientation(){
     return orientationProperty == null ? Orientation.HORIZONTAL : orientationProperty.get();
   }
 
-  public void setOrientation(final Orientation value){
+  public final void setOrientation(final Orientation value){
     orientationProperty().set(value);
   }
 
   private ObjectProperty<Orientation> orientationProperty;
 
 
-  @Override
-  public Orientation getAxisOrientation(){
-    return getOrientation()==Orientation.VERTICAL?Orientation.HORIZONTAL:Orientation.VERTICAL;
-  }
-
-
-
   /**
    * 範囲の片方の値
    * @return
    */
-  public DoubleProperty value1Property(){
+  public final DoubleProperty value1Property(){
     if (value1Property == null) {
       value1Property = new SimpleDoubleProperty(this, "value1", 0);
+      value1Property.addListener(getValidateListener());
     }
     return value1Property;
   }
 
-  public double getValue1(){
+  public final double getValue1(){
     return value1Property == null ? 0 : value1Property.get();
   }
 
-  public void setValue1(final double value){
+  public final void setValue1(final double value){
     value1Property().set(value);
   }
 
@@ -80,18 +78,19 @@ public class GraphRange implements GraphShape{
    * 範囲の片方の値
    * @return
    */
-  public DoubleProperty value2Property(){
+  public final DoubleProperty value2Property(){
     if (value2Property == null) {
       value2Property = new SimpleDoubleProperty(this, "value2", 1);
+      value2Property.addListener(getValidateListener());
     }
     return value2Property;
   }
 
-  public double getValue2(){
+  public final double getValue2(){
     return value2Property == null ? 1 : value2Property.get();
   }
 
-  public void setValue2(final double value){
+  public final void setValue2(final double value){
     value2Property().set(value);
   }
 
@@ -103,28 +102,33 @@ public class GraphRange implements GraphShape{
    * 可視性
    * @return
    */
-  public BooleanProperty visibleProperty(){
+  public final BooleanProperty visibleProperty(){
     if (visibleProperty == null) {
       visibleProperty = new SimpleBooleanProperty(this, "visible", true);
+      visibleProperty.addListener(getValidateListener());
     }
     return visibleProperty;
   }
 
-  public boolean isVisible(){
+  public final boolean isVisible(){
     return visibleProperty == null ? true : visibleProperty.get();
   }
 
-  public void setVisible(final boolean value){
+  public final void setVisible(final boolean value){
     visibleProperty().set(value);
   }
 
   private BooleanProperty visibleProperty;
 
+
   @Override
-  public void setNodeProperty(final Axis axis ,final double w ,final double h){
+  public void setNodeProperty(final Axis xaxis ,final Axis yaxis,final double w ,final double h){
+    setValidate(true);
     final double v1 =getValue1();
     final double v2 = getValue2();
     final Orientation orientation = getOrientation();
+    final boolean isX = orientation == Orientation.VERTICAL;
+    final Axis axis = isX?xaxis:yaxis;
     double d1 = axis.getDisplayPosition(v1);
 
     if(Double.isInfinite(d1)){

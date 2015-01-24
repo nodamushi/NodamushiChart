@@ -1,6 +1,9 @@
 package nodamushi.jfx.chart.linechart;
 
 import static java.lang.Math.*;
+
+import java.util.Arrays;
+
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleStringProperty;
@@ -55,31 +58,49 @@ public class LineChartData{
         y =EMPTY_ARRAY;
         return;
       }
-      final double[] xx = new double[length];
-      final double[] yy = new double[length];
-      System.arraycopy(x, 0, xx, 0, length);
-      System.arraycopy(y, 0, yy, 0, length);
-      x = xx;
-      y = yy;
+      x = Arrays.copyOf(x, length);
+      y = Arrays.copyOf(y, length);
+    }
+  }
+
+  public void setCaptcity(final int length){
+    if(x.length < length){
+      final double[] a=new double[length],b = new double[length];
+      System.arraycopy(x,0,a,0,this.length);
+      System.arraycopy(y,0,b,0,this.length);
+      x = a;
+      y = b;
     }
   }
 
 
-  public void setDatas(final double[] x,final double[] y){
-    final int min = Math.min(x.length, y.length);
+
+  public void setData(final double[] x,final double[] y,final int offset,int length){
+    final int min = Math.min(length,Math.min(x.length, y.length)-offset);
     if(this.x.length < min){
       this.x = new double[min];
       this.y = new double[min];
     }
 
-    System.arraycopy(x, 0, this.x, 0, min);
-    System.arraycopy(y, 0, this.y, 0, min);
+    System.arraycopy(x, offset, this.x, 0, min);
+    System.arraycopy(y, offset, this.y, 0, min);
     length = min;
     setValidate(false);
   }
 
-  public void addDatas(final double[] x,final double[] y){
-    final int min = Math.min(x.length, y.length);
+  public void setData(final double[] x,final double[] y){
+    setData(x, y, 0, Integer.MAX_VALUE);
+  }
+
+  public void setData(final double[] x,final double[] y,final int length){
+    setData(x,y,0,length);
+  }
+
+
+
+
+  public void addData(final double[] x,final double[] y,final int offset,int length){
+    final int min = Math.min(Math.min(x.length, y.length)-offset,length);
     final int oldLen = length;
     final int newlen = oldLen+min;
     if(this.x.length < newlen){
@@ -90,11 +111,20 @@ public class LineChartData{
       this.x = newx;
       this.y = newy;
     }
-    System.arraycopy(x, 0, this.x, oldLen, min);
-    System.arraycopy(y,0,this.y,oldLen,min);
+    System.arraycopy(x, offset, this.x, oldLen, min);
+    System.arraycopy(y, offset,this.y,oldLen,min);
     length = newlen;
     setValidate(false);
   }
+
+  public void addData(final double[] x,final double[] y){
+    addData(x,y,0,Integer.MAX_VALUE);
+  }
+
+  public void addData(final double[] x,final double[] y,final int length){
+    addData(x,y,0,length);
+  }
+
 
   public void addData(final double x,final double y){
     final int t = length;
@@ -184,20 +214,22 @@ public class LineChartData{
     return y[index];
   }
 
-  public double[] toArrayX(double[] arr){
-    if(arr == null || arr.length < length){
-      arr = new double[length];
-    }
+  public double[] toArrayX(final double[] arr){
     setValidate(true);
+    if(arr == null || arr.length < length){
+      return Arrays.copyOf(x, length);
+    }
+
     System.arraycopy(x, 0, arr, 0, length);
     return arr;
   }
 
-  public double[] toArrayY(double[] arr){
-    if(arr == null || arr.length < length){
-      arr = new double[length];
-    }
+  public double[] toArrayY(final double[] arr){
     setValidate(true);
+    if(arr == null || arr.length < length){
+      return Arrays.copyOf(y, length);
+    }
+
     System.arraycopy(y, 0, arr, 0, length);
     return arr;
   }

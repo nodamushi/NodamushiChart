@@ -33,7 +33,7 @@ public class Test2 extends Application{
     axis.setVisibleAmount(0.5);
 //    yaxis.setLowerValue(100);
 //    yaxis.setVisibleAmount(0.5);
-    final ObservableList<LineChartData> datas = c.getDatas();
+    final ObservableList<LineChartData> datas = c.getDataList();
     final LineChartData data = new LineChartData(200);
     //e^x
     for(int i=0;i<200;i++){

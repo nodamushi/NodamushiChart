@@ -38,7 +38,7 @@ public class Test extends Application{
 //    axis.setVisibleAmount(0.3);
 //    yaxis.setLowerValue(0);
 //    yaxis.setVisibleAmount(0.3);
-    final ObservableList<LineChartData> datas = c.getDatas();
+    final ObservableList<LineChartData> datas = c.getDataList();
     final LineChartData data = new LineChartData(200);
     //sinc関数を表示してみる
     for(int i=0;i<200;i++){

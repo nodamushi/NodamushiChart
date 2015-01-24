@@ -1,7 +1,5 @@
 package nodamushi.jfx.chart.linechart;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -17,23 +15,34 @@ import javafx.scene.shape.Line;
  * @author nodamushi
  *
  */
-public class GraphLine implements GraphShape{
-  private Line line =new Line();
+public class GraphLine extends AbstractGraphShape{
+  private Line line;
 
   @Override
   public Line getNode(){
+    if(line == null){
+      line = new Line();
+    }
     return line;
   }
 
+  public ObservableList<String> getStyleClass(){
+    return line.getStyleClass();
+  }
+
   @Override
-  public void setNodeProperty(final Axis axis ,final double w ,final double h){
+  public void setNodeProperty(final Axis xaxis,final Axis yaxis ,final double w ,final double h){
+    setValidate(true);
     final double v = getValue();
     final Line l = getNode();
+    final Orientation orientation = getOrientation();
+    final boolean isX = orientation == Orientation.VERTICAL;
+    final Axis axis = isX?xaxis:yaxis;
     if(Double.isInfinite(v)|| v!=v || !isVisible()){
       l.setVisible(false);
       return;
     }
-    if(getOrientation()!=Orientation.VERTICAL){
+    if(!isX){
       //横方向
       final double y=axis.getDisplayPosition(v);
       if(Double.isInfinite(y)|| y!=y|| y<0 || y>h){
@@ -42,8 +51,10 @@ public class GraphLine implements GraphShape{
       }
       l.setStartX(0);
       l.setEndX(w);
-      l.setStartY(y);
-      l.setEndY(y);
+      l.setStartY(0);
+      l.setEndY(0);
+      l.setLayoutX(0);
+      l.setLayoutY(y);
     }else{
       final double x=axis.getDisplayPosition(v);
       if(Double.isInfinite(x) || x!=x || x <0 || x >w){
@@ -52,8 +63,10 @@ public class GraphLine implements GraphShape{
       }
       l.setStartY(0);
       l.setEndY(h);
-      l.setStartX(x);
-      l.setEndX(x);
+      l.setStartX(0);
+      l.setEndX(0);
+      l.setLayoutX(x);
+      l.setLayoutY(0);
     }
     l.setVisible(true);
 
@@ -63,25 +76,19 @@ public class GraphLine implements GraphShape{
    * グラフ上の値
    * @return
    */
-  public DoubleProperty valueProperty(){
+  public final DoubleProperty valueProperty(){
     if (valueProperty == null) {
-      valueProperty = new SimpleDoubleProperty(this, "value", 0){
-        @Override
-        public double get(){
-          setValidate(true);
-          return super.get();
-        }
-      };
+      valueProperty = new SimpleDoubleProperty(this, "value", 0);
       valueProperty.addListener(getValidateListener());
     }
     return valueProperty;
   }
 
-  public double getValue(){
+  public final double getValue(){
     return valueProperty == null ? 0 : valueProperty.get();
   }
 
-  public void setValue(final double value){
+  public final void setValue(final double value){
     valueProperty().set(value);
   }
 
@@ -94,7 +101,7 @@ public class GraphLine implements GraphShape{
    * 可視性
    * @return
    */
-  public BooleanProperty visibleProperty(){
+  public final BooleanProperty visibleProperty(){
     if (visibleProperty == null) {
       visibleProperty = new SimpleBooleanProperty(this, "visible", true);
       visibleProperty.addListener(getValidateListener());
@@ -102,98 +109,38 @@ public class GraphLine implements GraphShape{
     return visibleProperty;
   }
 
-  public boolean isVisible(){
+  public final boolean isVisible(){
     return visibleProperty == null ? true : visibleProperty.get();
   }
 
-  public void setVisible(final boolean value){
+  public final void setVisible(final boolean value){
     visibleProperty().set(value);
   }
 
   private BooleanProperty visibleProperty;
 
 
-
-  public ObservableList<String> getStyleClass(){
-    return line.getStyleClass();
-  }
-
-
-
   /**
    * 縦方向の線か、横方向の線か
    * @return
    */
-  public ObjectProperty<Orientation> orientationProperty(){
+  public final ObjectProperty<Orientation> orientationProperty(){
     if (orientationProperty == null) {
       orientationProperty =
-          new SimpleObjectProperty<Orientation>(this, "orientation", null){
-        @Override
-        public Orientation get(){
-          setValidate(true);
-          return super.get();
-        }
-      };
+          new SimpleObjectProperty<>(this, "orientation", null);
       orientationProperty.addListener(getValidateListener());
     }
     return orientationProperty;
   }
 
-  public Orientation getOrientation(){
+  public final Orientation getOrientation(){
     return orientationProperty == null ? null : orientationProperty.get();
   }
 
-  @Override
-  public Orientation getAxisOrientation(){
-    return getOrientation()==Orientation.VERTICAL?Orientation.HORIZONTAL:Orientation.VERTICAL;
-  }
-
-  public void setOrientation(final Orientation value){
+  public final void setOrientation(final Orientation value){
     orientationProperty().set(value);
   }
 
   private ObjectProperty<Orientation> orientationProperty;
 
-
-
-
-  protected InvalidationListener getValidateListener(){
-    if (validateListener == null) {
-      validateListener = new InvalidationListener(){
-        @Override
-        public void invalidated(final Observable observable){
-          if (isValidate()) {
-            setValidate(false);
-          }
-        }
-      };
-    }
-    return validateListener;
-  }
-
-  /** 直接フィールドを利用せずに、 getValidateListener() を利用すること*/
-  private InvalidationListener validateListener = null;
-
-
-
-  /**
-   * 正当性。
-   * @return
-   */
-  public BooleanProperty validateProperty(){
-    if (validateProperty == null) {
-      validateProperty = new SimpleBooleanProperty(this, "validate", false);
-    }
-    return validateProperty;
-  }
-
-  public boolean isValidate(){
-    return validateProperty == null ? false : validateProperty.get();
-  }
-
-  public void setValidate(final boolean value){
-    validateProperty().set(value);
-  }
-
-  private BooleanProperty validateProperty;
 }

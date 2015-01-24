@@ -46,7 +46,7 @@ public class LineChart extends Region{
   public LineChart(){
     getStyleClass().setAll("chart");
     graph.setAutoPlot(false);
-    graph.setLineChartDataList(getDatas());
+    graph.setLineChartDataList(getDataList());
     graph.xAxisProperty().bind(xAxisProperty());
     graph.yAxisProperty().bind(yAxisProperty());
     graph.orientationProperty().bind(orientationProperty());
@@ -108,22 +108,22 @@ public class LineChart extends Region{
 
   GraphPlotArea graph=new GraphPlotArea();
 
-  public <T extends Event> void addEventHandlerToGraphArea(
+  public final <T extends Event> void addEventHandlerToGraphArea(
       final EventType<T> eventType, final EventHandler<? super T> eventHandler){
     graph.addEventHandler(eventType, eventHandler);
   }
 
-  public <T extends Event> void addEventFilterToGraphArea(
+  public final <T extends Event> void addEventFilterToGraphArea(
       final EventType<T> eventType, final EventHandler<? super T> eventFilter){
     graph.addEventFilter(eventType, eventFilter);
   }
 
-  public <T extends Event> void removeEventHandlerFromGraphArea(
+  public final <T extends Event> void removeEventHandlerFromGraphArea(
       final EventType<T> eventType, final EventHandler<? super T> eventHandler){
     graph.removeEventHandler(eventType, eventHandler);
   }
 
-  public <T extends Event> void removeEventFilterFromGraphArea(
+  public final <T extends Event> void removeEventFilterFromGraphArea(
       final EventType<T> eventType, final EventHandler<? super T> eventFilter){
     graph.removeEventFilter(eventType, eventFilter);
   }
@@ -295,12 +295,15 @@ public class LineChart extends Region{
     if(xAxis==null) {
       return;
     }
-    if(datas == null){
+    if(datalist == null){
       xAxis.setMaxValue(1);
       xAxis.setMinValue(0);
     }else{
       double min=Double.POSITIVE_INFINITY,max=Double.NEGATIVE_INFINITY;
-      for(final LineChartData d:datas){
+      for(final LineChartData d:datalist){
+        if(d.size() == 0) {
+          continue;
+        }
         if(getOrientation()==Orientation.HORIZONTAL){
           final double i = d.getX(0);
           final double a = d.getX(d.size()-1);
@@ -328,7 +331,6 @@ public class LineChart extends Region{
       if(min ==0 || signum(b)*signum(min)<0){
         b = 0;
       }
-
       xAxis.setMaxValue(u);
       xAxis.setMinValue(b);
     }
@@ -342,12 +344,15 @@ public class LineChart extends Region{
     if(yAxis==null) {
       return;
     }
-    if(datas == null){
+    if(datalist == null){
       yAxis.setMaxValue(1);
       yAxis.setMinValue(0);
     }else{
       double min=Double.POSITIVE_INFINITY,max=Double.NEGATIVE_INFINITY;
-      for(final LineChartData d:datas){
+      for(final LineChartData d:datalist){
+        if(d.size() == 0) {
+          continue;
+        }
         if(getOrientation()==Orientation.VERTICAL){
           final double i = d.getY(0);
           final double a = d.getY(d.size()-1);
@@ -388,7 +393,7 @@ public class LineChart extends Region{
 
 
 
-  protected InvalidationListener getDataValidateListener(){
+  protected final InvalidationListener getDataValidateListener(){
     if (dataValidateListener == null) {
       dataValidateListener = new InvalidationListener(){
         @Override
@@ -403,11 +408,11 @@ public class LineChart extends Region{
     return dataValidateListener;
   }
 
-  protected boolean isDataValidate(){
+  protected final boolean isDataValidate(){
     return datavalidate;
   }
 
-  protected void setDataValidate(final boolean bool){
+  protected final void setDataValidate(final boolean bool){
     datavalidate = bool;
   }
 
@@ -418,7 +423,7 @@ public class LineChart extends Region{
   private boolean datavalidate = false;
 
   private InvalidationListener lineChartDataListener;
-  protected InvalidationListener getLineChartDataListener(){
+  protected final InvalidationListener getLineChartDataListener(){
     if(lineChartDataListener == null){
       lineChartDataListener = new InvalidationListener(){
         @Override
@@ -433,12 +438,12 @@ public class LineChart extends Region{
     return lineChartDataListener;
   }
 
-  private ObservableList<LineChartData> datas;
-  public ObservableList<LineChartData> getDatas(){
-    if(datas == null){
-      datas = FXCollections.observableArrayList();
-      datas.addListener(getDataValidateListener());
-      datas.addListener(new ListChangeListener<LineChartData>(){
+  private ObservableList<LineChartData> datalist;
+  public final ObservableList<LineChartData> getDataList(){
+    if(datalist == null){
+      datalist = FXCollections.observableArrayList();
+      datalist.addListener(getDataValidateListener());
+      datalist.addListener(new ListChangeListener<LineChartData>(){
         @Override
         public void onChanged(final Change<? extends LineChartData> c){
           final InvalidationListener l = getLineChartDataListener();
@@ -460,7 +465,7 @@ public class LineChart extends Region{
         }
       });
     }
-    return datas;
+    return datalist;
   }
 
 
@@ -470,18 +475,18 @@ public class LineChart extends Region{
    * x軸方向に連続なデータか、y軸方向に連続なデータかを指定するプロパティ
    * @return
    */
-  public ObjectProperty<Orientation> orientationProperty(){
+  public final ObjectProperty<Orientation> orientationProperty(){
     if (orientationProperty == null) {
       orientationProperty = new SimpleObjectProperty<>(this, "orientation", Orientation.HORIZONTAL);
     }
     return orientationProperty;
   }
 
-  public Orientation getOrientation(){
+  public final Orientation getOrientation(){
     return orientationProperty == null ? Orientation.HORIZONTAL : orientationProperty.get();
   }
 
-  public void setOrientation(final Orientation value){
+  public final void setOrientation(final Orientation value){
     orientationProperty().set(value);
   }
 
@@ -489,7 +494,7 @@ public class LineChart extends Region{
 
 
 
-  protected InvalidationListener getLayoutInvalidationListener(){
+  protected final InvalidationListener getLayoutInvalidationListener(){
     if (layoutInvalidationListener == null) {
       layoutInvalidationListener = new InvalidationListener(){
         @Override
@@ -501,8 +506,6 @@ public class LineChart extends Region{
     return layoutInvalidationListener;
   }
 
-
-  /** 直接フィールドを利用せずに、 getValidateListener() を利用すること*/
   private InvalidationListener layoutInvalidationListener = null;
 
 
@@ -542,7 +545,7 @@ public class LineChart extends Region{
    * x軸
    * @return
    */
-  public ObjectProperty<Axis> xAxisProperty(){
+  public final ObjectProperty<Axis> xAxisProperty(){
     if (xAxisProperty == null) {
       xAxisProperty = new SimpleObjectProperty<>(this, "xAxis", null);
       xAxisProperty.addListener(getDataValidateListener());
@@ -551,11 +554,11 @@ public class LineChart extends Region{
     return xAxisProperty;
   }
 
-  public Axis getXAxis(){
+  public final Axis getXAxis(){
     return xAxisProperty == null ? null : xAxisProperty.get();
   }
 
-  public void setXAxis(final Axis value){
+  public final void setXAxis(final Axis value){
     xAxisProperty().set(value);
   }
 
@@ -567,18 +570,18 @@ public class LineChart extends Region{
    * x軸の範囲を自動的に設定するかどうか
    * @return
    */
-  public BooleanProperty autoRangeXProperty(){
+  public final BooleanProperty autoRangeXProperty(){
     if (autoRangeXProperty == null) {
       autoRangeXProperty = new SimpleBooleanProperty(this, "autoRangeX", true);
     }
     return autoRangeXProperty;
   }
 
-  public boolean isAutoRangeX(){
+  public final boolean isAutoRangeX(){
     return autoRangeXProperty == null ? true : autoRangeXProperty.get();
   }
 
-  public void setAutoRangeX(final boolean value){
+  public final void setAutoRangeX(final boolean value){
     autoRangeXProperty().set(value);
   }
 
@@ -591,7 +594,7 @@ public class LineChart extends Region{
    * y軸
    * @return
    */
-  public ObjectProperty<Axis> yAxisProperty(){
+  public final ObjectProperty<Axis> yAxisProperty(){
     if (yAxisProperty == null) {
       yAxisProperty = new SimpleObjectProperty<>(this, "yAxis", null);
       yAxisProperty.addListener(getDataValidateListener());
@@ -600,11 +603,11 @@ public class LineChart extends Region{
     return yAxisProperty;
   }
 
-  public Axis getYAxis(){
+  public final Axis getYAxis(){
     return yAxisProperty == null ? null : yAxisProperty.get();
   }
 
-  public void setYAxis(final Axis value){
+  public final void setYAxis(final Axis value){
     yAxisProperty().set(value);
   }
 
@@ -615,18 +618,18 @@ public class LineChart extends Region{
    * y軸の範囲を自動的に設定するかどうか
    * @return
    */
-  public BooleanProperty autoRangeYProperty(){
+  public final BooleanProperty autoRangeYProperty(){
     if (autoRangeYProperty == null) {
       autoRangeYProperty = new SimpleBooleanProperty(this, "autoRangeY", true);
     }
     return autoRangeYProperty;
   }
 
-  public boolean isAutoRangeY(){
+  public final boolean isAutoRangeY(){
     return autoRangeYProperty == null ? true : autoRangeYProperty.get();
   }
 
-  public void setAutoRangeY(final boolean value){
+  public final void setAutoRangeY(final boolean value){
     autoRangeYProperty().set(value);
   }
 
@@ -639,18 +642,18 @@ public class LineChart extends Region{
    * 自動的に設定する範囲に対して持たせる余裕
    * @return
    */
-  public DoubleProperty rangeMarginXProperty(){
+  public final DoubleProperty rangeMarginXProperty(){
     if (rangeMarginXProperty == null) {
       rangeMarginXProperty = new SimpleDoubleProperty(this, "rangeMarginX", 1.25);
     }
     return rangeMarginXProperty;
   }
 
-  public double getRangeMarginX(){
+  public final double getRangeMarginX(){
     return rangeMarginXProperty == null ? 1.25 : rangeMarginXProperty.get();
   }
 
-  public void setRangeMarginX(final double value){
+  public final void setRangeMarginX(final double value){
     rangeMarginXProperty().set(value);
   }
 
@@ -661,18 +664,18 @@ public class LineChart extends Region{
    * 自動的に設定する範囲に対して持たせる余裕
    * @return
    */
-  public DoubleProperty rangeMarginYProperty(){
+  public final DoubleProperty rangeMarginYProperty(){
     if (rangeMarginYProperty == null) {
       rangeMarginYProperty = new SimpleDoubleProperty(this, "rangeMarginY", 1.25);
     }
     return rangeMarginYProperty;
   }
 
-  public double getRangeMarginY(){
+  public final double getRangeMarginY(){
     return rangeMarginYProperty == null ? 1.25 : rangeMarginYProperty.get();
   }
 
-  public void setRangeMarginY(final double value){
+  public final void setRangeMarginY(final double value){
     rangeMarginYProperty().set(value);
   }
 
@@ -685,7 +688,7 @@ public class LineChart extends Region{
    * 横方向minor tickの線の可視性
    * @return
    */
-  public BooleanProperty horizontalMinorGridLinesVisibleProperty(){
+  public final BooleanProperty horizontalMinorGridLinesVisibleProperty(){
     if (horizontalMinorGridLinesVisibleProperty == null) {
       horizontalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "horizontalMinorGridLinesVisible", false);
       graph.horizontalMinorGridLinesVisibleProperty()
@@ -694,11 +697,11 @@ public class LineChart extends Region{
     return horizontalMinorGridLinesVisibleProperty;
   }
 
-  public boolean isHorizontalMinorGridLinesVisible(){
+  public final boolean isHorizontalMinorGridLinesVisible(){
     return horizontalMinorGridLinesVisibleProperty == null ? false : horizontalMinorGridLinesVisibleProperty.get();
   }
 
-  public void setHorizontalMinorGridLinesVisible(final boolean value){
+  public final void setHorizontalMinorGridLinesVisible(final boolean value){
     horizontalMinorGridLinesVisibleProperty().set(value);
   }
 
@@ -709,7 +712,7 @@ public class LineChart extends Region{
    * 縦方向minor tickの線の可視性
    * @return
    */
-  public BooleanProperty verticalMinorGridLinesVisibleProperty(){
+  public final BooleanProperty verticalMinorGridLinesVisibleProperty(){
     if (verticalMinorGridLinesVisibleProperty == null) {
       verticalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "verticalMinorGridLinesVisible", false);
       graph.verticalMinorGridLinesVisibleProperty()
@@ -718,11 +721,11 @@ public class LineChart extends Region{
     return verticalMinorGridLinesVisibleProperty;
   }
 
-  public boolean isVerticalMinorGridLinesVisible(){
+  public final boolean isVerticalMinorGridLinesVisible(){
     return verticalMinorGridLinesVisibleProperty == null ? false : verticalMinorGridLinesVisibleProperty.get();
   }
 
-  public void setVerticalMinorGridLinesVisible(final boolean value){
+  public final void setVerticalMinorGridLinesVisible(final boolean value){
     verticalMinorGridLinesVisibleProperty().set(value);
   }
 
@@ -735,7 +738,7 @@ public class LineChart extends Region{
    * この値が指定されたときは、このノードの大きさにかかわらず、この値が利用される。
    * @return
    */
-  public ObjectProperty<Rectangle2D> plotAreaPrefferedBoundsProperty(){
+  public final ObjectProperty<Rectangle2D> plotAreaPrefferedBoundsProperty(){
     if (plotAreaPrefferedBoundsProperty == null) {
       plotAreaPrefferedBoundsProperty = new SimpleObjectProperty<>(this, "plotAreaPrefferedBounds", null);
       plotAreaPrefferedBoundsProperty.addListener(getLayoutInvalidationListener());
@@ -743,11 +746,11 @@ public class LineChart extends Region{
     return plotAreaPrefferedBoundsProperty;
   }
 
-  public Rectangle2D getPlotAreaPrefferedBounds(){
+  public final Rectangle2D getPlotAreaPrefferedBounds(){
     return plotAreaPrefferedBoundsProperty == null ? null : plotAreaPrefferedBoundsProperty.get();
   }
 
-  public void setPlotAreaPrefferedBounds(final Rectangle2D value){
+  public final void setPlotAreaPrefferedBounds(final Rectangle2D value){
     plotAreaPrefferedBoundsProperty().set(value);
   }
 
@@ -760,19 +763,19 @@ public class LineChart extends Region{
    * レイアウト結果のGraphPlotAreaの大きさと位置
    * @return
    */
-  public ReadOnlyObjectProperty<Rectangle2D> plotAreaBoundsProperty(){
+  public final ReadOnlyObjectProperty<Rectangle2D> plotAreaBoundsProperty(){
     return plotAreaBoundsWrapper().getReadOnlyProperty();
   }
 
-  public Rectangle2D getPlotAreaBounds(){
+  public final Rectangle2D getPlotAreaBounds(){
     return plotAreaBoundsWrapper.get();
   }
 
-  protected void setPlotAreaBounds(final Rectangle2D value){
+  protected final void setPlotAreaBounds(final Rectangle2D value){
     plotAreaBoundsWrapper().set(value);
   }
 
-  protected ReadOnlyObjectWrapper<Rectangle2D> plotAreaBoundsWrapper(){
+  protected final ReadOnlyObjectWrapper<Rectangle2D> plotAreaBoundsWrapper(){
     return plotAreaBoundsWrapper;
   }
 
@@ -787,15 +790,15 @@ public class LineChart extends Region{
    * xが幅を表し、yが高さを表す。
    * @return
    */
-  public ReadOnlyObjectProperty<Point2D> layoutedSizeProperty(){
+  public final ReadOnlyObjectProperty<Point2D> layoutedSizeProperty(){
     return layoutedSizeWrapper().getReadOnlyProperty();
   }
 
-  public Point2D getLayoutedSize(){
+  public final Point2D getLayoutedSize(){
     return layoutedSizeWrapper.get();
   }
 
-  protected void setLayoutedSize(final Point2D value){
+  protected final void setLayoutedSize(final Point2D value){
     layoutedSizeWrapper().set(value);
   }
 
@@ -814,18 +817,18 @@ public class LineChart extends Region{
    * 単なるデータであり、表示はされない
    * @return
    */
-  public StringProperty titleProperty(){
+  public final StringProperty titleProperty(){
     if (titleProperty == null) {
       titleProperty = new SimpleStringProperty(this, "title", null);
     }
     return titleProperty;
   }
 
-  public String getTitle(){
+  public final String getTitle(){
     return titleProperty == null ? null : titleProperty.get();
   }
 
-  public void setTitle(final String value){
+  public final void setTitle(final String value){
     titleProperty().set(value);
   }
 

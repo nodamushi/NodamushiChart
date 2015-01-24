@@ -72,6 +72,8 @@ public class GraphPlotArea extends Region{
     horizontalRowFill = new Path();
     verticalMinorGridLines = new Path();
     horizontalMinorGridLines = new Path();
+    verticalGridLines.setVisible(false);
+    horizontalMinorGridLines.setVisible(false);
     verticalRowFill.getStyleClass().setAll("chart-alternative-column-fill");
     horizontalRowFill.getStyleClass().setAll("chart-alternative-row-fill");
     verticalGridLines.getStyleClass().setAll("chart-vertical-grid-lines");
@@ -91,14 +93,14 @@ public class GraphPlotArea extends Region{
    * ユーザが任意に使える背景領域
    * @return
    */
-  public ObservableList<Node> getBackgroundChildren(){
+  public final ObservableList<Node> getBackgroundChildren(){
     return userBackround.getChildren();
   }
   /**
    * ユーザが任意に使える前景領域
    * @return
    */
-  public ObservableList<Node> getForegroundChildren(){
+  public final ObservableList<Node> getForegroundChildren(){
     return userForeground.getChildren();
   }
 
@@ -107,9 +109,60 @@ public class GraphPlotArea extends Region{
     if(isAutoPlot() && !isPlotValidate()){
       plotData();
     }
+    if(!isGraphShapeValidate()){
+      drawGraphShapes();
+    }
   }
 
   public void plotData(){
+    final Axis xaxis = getXAxis();
+    final Axis yaxis = getYAxis();
+
+    if(xaxis == null || yaxis ==null){
+      setPlotValidate(true);
+      setGraphShapeValidate(true);
+      return;
+    }
+    final double w = getWidth(),h = getHeight();
+    drawGraphShapes();
+    if(!isPlotValidate()){
+      drawBackGroundLine();
+      plotLineChartDatas(w,h);
+      setPlotValidate(true);
+    }
+  }
+
+  public void drawGraphShapes(){
+    if(isPlotValidate()&&isGraphShapeValidate()) {
+      return;
+    }
+    final Axis xaxis = getXAxis();
+    final Axis yaxis = getYAxis();
+
+    if(xaxis == null || yaxis ==null){
+      setGraphShapeValidate(true);
+      return;
+    }
+
+    final double w = getWidth(),h = getHeight();
+
+    List<GraphShape> lines = backGroundShapes;
+    if(lines!=null){
+      for(final GraphShape gl:lines){
+        gl.setNodeProperty(xaxis,yaxis, w, h);
+      }
+    }
+    lines = foreGroundShapes;
+    if(lines!=null){
+      for(final GraphShape gl:lines){
+        gl.setNodeProperty(xaxis,yaxis, w, h);
+      }
+    }
+  }
+
+
+
+  public void drawBackGroundLine(){
     final Axis xaxis = getXAxis();
     final Axis yaxis = getYAxis();
 
@@ -304,12 +357,8 @@ public class GraphPlotArea extends Region{
       }
     }//end H
 
-    V:{
+    {
       final Axis axis =xaxis;
-      if(!isVerticalMinorGridLinesVisible()){
-        verticalMinorGridLines.getElements().clear();
-        break V;
-      }
       final List<Double> minorTicks = axis.getMinorTicks();
       final ObservableList<PathElement> ele = verticalMinorGridLines.getElements();
       final int elesize = ele.size();
@@ -335,12 +384,8 @@ public class GraphPlotArea extends Region{
       }
     }
 
-    H:{
+    {
       final Axis axis =yaxis;
-      if(!isHorizontalMinorGridLinesVisible()){
-        horizontalMinorGridLines.getElements().clear();
-        break H;
-      }
       final List<Double> minorTicks = axis.getMinorTicks();
       final ObservableList<PathElement> ele = horizontalMinorGridLines.getElements();
       final int elesize = ele.size();
@@ -365,20 +410,8 @@ public class GraphPlotArea extends Region{
         lt.setY(d);
       }
     }
-
-    for(int i=0;i<2;i++){
-      final List<GraphShape> lines = i==0?backGroundShapes:foreGroundShapes;
-      if(lines!=null){
-        for(final GraphShape gl:lines){
-          gl.setNodeProperty(gl.getAxisOrientation()==Orientation.HORIZONTAL?
-              xaxis:yaxis, w, h);
-        }
-      }
-    }
-
-    plotLineChartDatas(w,h);
-    setPlotValidate(true);
   }
+
 
   protected void plotLineChartDatas(final double width,final double height){
     final Group g = plotArea;
@@ -426,7 +459,12 @@ public class GraphPlotArea extends Region{
   protected void plotLineChartData(final LineChartData data,final Path path,
       final double width,final double height){
     final ObservableList<PathElement> elements = path.getElements();
-
+    if(data.size() == 0){
+      path.setVisible(false);
+      return;
+    }else{
+      path.setVisible(true);
+    }
     final int esize = elements.size();
     final Axis xaxis = getXAxis();
     final Axis yaxis = getYAxis();
@@ -702,18 +740,18 @@ public class GraphPlotArea extends Region{
    * 横方向のグリッド線を表示するかどうかのプロパティ
    * @return
    */
-  public BooleanProperty horizontalGridLinesVisibleProperty(){
+  public final BooleanProperty horizontalGridLinesVisibleProperty(){
     if (horizontalGridLinesVisibleProperty == null) {
       horizontalGridLinesVisibleProperty = new SimpleBooleanProperty(this, "horizontalGridLinesVisible", true);
     }
     return horizontalGridLinesVisibleProperty;
   }
 
-  public boolean isHorizontalGridLinesVisible(){
+  public final boolean isHorizontalGridLinesVisible(){
     return horizontalGridLinesVisibleProperty == null ? true : horizontalGridLinesVisibleProperty.get();
   }
 
-  public void setHorizontalGridLinesVisible(final boolean value){
+  public final void setHorizontalGridLinesVisible(final boolean value){
     horizontalGridLinesVisibleProperty().set(value);
   }
 
@@ -725,18 +763,18 @@ public class GraphPlotArea extends Region{
    * 縦方向のグリッド線を表示するかどうかのプロパティ
    * @return
    */
-  public BooleanProperty verticalGridLinesVisibleProperty(){
+  public final BooleanProperty verticalGridLinesVisibleProperty(){
     if (verticalGridLinesVisibleProperty == null) {
       verticalGridLinesVisibleProperty = new SimpleBooleanProperty(this, "verticalGridLinesVisible", true);
     }
     return verticalGridLinesVisibleProperty;
   }
 
-  public boolean isVerticalGridLinesVisible(){
+  public final boolean isVerticalGridLinesVisible(){
     return verticalGridLinesVisibleProperty == null ? true : verticalGridLinesVisibleProperty.get();
   }
 
-  public void setVerticalGridLinesVisible(final boolean value){
+  public final void setVerticalGridLinesVisible(final boolean value){
     verticalGridLinesVisibleProperty().set(value);
   }
 
@@ -749,7 +787,7 @@ public class GraphPlotArea extends Region{
    * 横方向minor tickの線の可視性
    * @return
    */
-  public BooleanProperty horizontalMinorGridLinesVisibleProperty(){
+  public final BooleanProperty horizontalMinorGridLinesVisibleProperty(){
     if (horizontalMinorGridLinesVisibleProperty == null) {
       horizontalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "horizontalMinorGridLinesVisible", false);
       horizontalMinorGridLines.visibleProperty()
@@ -758,11 +796,11 @@ public class GraphPlotArea extends Region{
     return horizontalMinorGridLinesVisibleProperty;
   }
 
-  public boolean isHorizontalMinorGridLinesVisible(){
+  public final boolean isHorizontalMinorGridLinesVisible(){
     return horizontalMinorGridLinesVisibleProperty == null ? false : horizontalMinorGridLinesVisibleProperty.get();
   }
 
-  public void setHorizontalMinorGridLinesVisible(final boolean value){
+  public final void setHorizontalMinorGridLinesVisible(final boolean value){
     horizontalMinorGridLinesVisibleProperty().set(value);
   }
 
@@ -773,7 +811,7 @@ public class GraphPlotArea extends Region{
    * 縦方向minor tickの線の可視性
    * @return
    */
-  public BooleanProperty verticalMinorGridLinesVisibleProperty(){
+  public final BooleanProperty verticalMinorGridLinesVisibleProperty(){
     if (verticalMinorGridLinesVisibleProperty == null) {
       verticalMinorGridLinesVisibleProperty = new SimpleBooleanProperty(this, "verticalMinorGridLinesVisible", false);
       verticalMinorGridLines.visibleProperty()
@@ -782,31 +820,31 @@ public class GraphPlotArea extends Region{
     return verticalMinorGridLinesVisibleProperty;
   }
 
-  public boolean isVerticalMinorGridLinesVisible(){
+  public final boolean isVerticalMinorGridLinesVisible(){
     return verticalMinorGridLinesVisibleProperty == null ? false : verticalMinorGridLinesVisibleProperty.get();
   }
 
-  public void setVerticalMinorGridLinesVisible(final boolean value){
+  public final void setVerticalMinorGridLinesVisible(final boolean value){
     verticalMinorGridLinesVisibleProperty().set(value);
   }
 
   private BooleanProperty verticalMinorGridLinesVisibleProperty;
   /**
-   * 縦方向に相互に背景を塗りつぶすかどうか
+   * 縦方向に交互に背景を塗りつぶすかどうか
    * @return
    */
-  public BooleanProperty alternativeColumnFillVisibleProperty(){
+  public final BooleanProperty alternativeColumnFillVisibleProperty(){
     if (alternativeColumnFillVisibleProperty == null) {
       alternativeColumnFillVisibleProperty = new SimpleBooleanProperty(this, "alternativeColumnFillVisible", true);
     }
     return alternativeColumnFillVisibleProperty;
   }
 
-  public boolean isAlternativeColumnFillVisible(){
+  public final boolean isAlternativeColumnFillVisible(){
     return alternativeColumnFillVisibleProperty == null ? true : alternativeColumnFillVisibleProperty.get();
   }
 
-  public void setAlternativeColumnFillVisible(final boolean value){
+  public final void setAlternativeColumnFillVisible(final boolean value){
     alternativeColumnFillVisibleProperty().set(value);
   }
 
@@ -814,21 +852,21 @@ public class GraphPlotArea extends Region{
 
 
   /**
-   * 自動的に生成されたプロパティ
+   * 横方向に交互に背景を塗りつぶす
    * @return
    */
-  public BooleanProperty alternativeRowFillVisibleProperty(){
+  public final BooleanProperty alternativeRowFillVisibleProperty(){
     if (alternativeRowFillVisibleProperty == null) {
       alternativeRowFillVisibleProperty = new SimpleBooleanProperty(this, "alternativeRowFillVisible", true);
     }
     return alternativeRowFillVisibleProperty;
   }
 
-  public boolean isAlternativeRowFillVisible(){
+  public final boolean isAlternativeRowFillVisible(){
     return alternativeRowFillVisibleProperty == null ? true : alternativeRowFillVisibleProperty.get();
   }
 
-  public void setAlternativeRowFillVisible(final boolean value){
+  public final void setAlternativeRowFillVisible(final boolean value){
     alternativeRowFillVisibleProperty().set(value);
   }
 
@@ -867,7 +905,7 @@ public class GraphPlotArea extends Region{
    * x-axis
    * @return
    */
-  public ObjectProperty<Axis> xAxisProperty(){
+  public final ObjectProperty<Axis> xAxisProperty(){
     if (xAxisProperty == null) {
       xAxisProperty = new SimpleObjectProperty<>(this, "xAxis", null);
       xAxisProperty.addListener(axisListener);
@@ -875,11 +913,11 @@ public class GraphPlotArea extends Region{
     return xAxisProperty;
   }
 
-  public Axis getXAxis(){
+  public final Axis getXAxis(){
     return xAxisProperty == null ? null : xAxisProperty.get();
   }
 
-  public void setXAxis(final Axis value){
+  public final void setXAxis(final Axis value){
     xAxisProperty().set(value);
   }
 
@@ -891,7 +929,7 @@ public class GraphPlotArea extends Region{
    * y-axis
    * @return
    */
-  public ObjectProperty<Axis> yAxisProperty(){
+  public final ObjectProperty<Axis> yAxisProperty(){
     if (yAxisProperty == null) {
       yAxisProperty = new SimpleObjectProperty<>(this, "yAxis", null);
       yAxisProperty.addListener(axisListener);
@@ -903,15 +941,41 @@ public class GraphPlotArea extends Region{
     return yAxisProperty == null ? null : yAxisProperty.get();
   }
 
-  public void setYAxis(final Axis value){
+  public final void setYAxis(final Axis value){
     yAxisProperty().set(value);
   }
 
   private ObjectProperty<Axis> yAxisProperty;
 
 
+  private boolean graphshapeValidate=true;
+  protected final void setGraphShapeValidate(final boolean b){
+    graphshapeValidate = b;
+  }
+  protected final boolean isGraphShapeValidate(){
+    return graphshapeValidate;
+  }
+
+  private InvalidationListener getGraphShapeValidateListener(){
+    if(graphShapeValidateListener==null){
+      graphShapeValidateListener=new InvalidationListener(){
+        @Override
+        public void invalidated(final Observable o){
+          final BooleanProperty p = (BooleanProperty)o;
+          final boolean b = p.get();
+          if(!b && isGraphShapeValidate()){
+            setGraphShapeValidate(false);
+            requestLayout();
+          }
+        }
+      };
+    }
+    return graphShapeValidateListener;
+  }
+
+  private InvalidationListener graphShapeValidateListener;
   private ObservableList<GraphShape> backGroundShapes,foreGroundShapes;
-  public ObservableList<GraphShape> getBackGroundShapes(){
+  public final ObservableList<GraphShape> getBackGroundShapes(){
     if(backGroundShapes == null){
       backGroundShapes = FXCollections.observableArrayList();
       final ListChangeListener<GraphShape> l =new ListChangeListener<GraphShape>(){
@@ -920,11 +984,14 @@ public class GraphPlotArea extends Region{
           c.next();
           final Group g = background;
           final ObservableList<Node> ch = g.getChildren();
+          final InvalidationListener listener = getGraphShapeValidateListener();
           for(final GraphShape gl: c.getRemoved()){
             ch.remove(gl.getNode());
+            gl.validateProperty().removeListener(listener);
           }
           for(final GraphShape gl: c.getAddedSubList()){
             ch.add(gl.getNode());
+            gl.validateProperty().addListener(listener);
           }
           if(isPlotValidate()){
             setPlotValidate(false);
@@ -937,7 +1004,7 @@ public class GraphPlotArea extends Region{
     return backGroundShapes;
   }
 
-  public ObservableList<GraphShape> getForeGroundShapes(){
+  public final ObservableList<GraphShape> getForeGroundShapes(){
     if(foreGroundShapes == null){
       foreGroundShapes = FXCollections.observableArrayList();
       final ListChangeListener<GraphShape> l =new ListChangeListener<GraphShape>(){
@@ -946,11 +1013,14 @@ public class GraphPlotArea extends Region{
           c.next();
           final Group g = foreground;
           final ObservableList<Node> ch = g.getChildren();
+          final InvalidationListener listener = getGraphShapeValidateListener();
           for(final GraphShape gl: c.getRemoved()){
             ch.remove(gl.getNode());
+            gl.validateProperty().removeListener(listener);
           }
           for(final GraphShape gl: c.getAddedSubList()){
             ch.add(gl.getNode());
+            gl.validateProperty().addListener(listener);
           }
           if(isPlotValidate()){
             setPlotValidate(false);
@@ -967,7 +1037,7 @@ public class GraphPlotArea extends Region{
   private ListChangeListener<LineChartData> dataListListener;
   private InvalidationListener dataListener;
   private BitSet colorIndex = new BitSet(8);
-  protected InvalidationListener getDataListener(){
+  protected final InvalidationListener getDataListener(){
     if(dataListener == null){
       dataListener = new InvalidationListener(){
         @Override
@@ -983,7 +1053,7 @@ public class GraphPlotArea extends Region{
     return dataListener;
   }
 
-  public void setLineChartDataList(final ObservableList<LineChartData> datalist){
+  public final void setLineChartDataList(final ObservableList<LineChartData> datalist){
     if(dataListener==null){
       dataListListener = new ListChangeListener<LineChartData>(){
         @Override
@@ -1038,18 +1108,18 @@ public class GraphPlotArea extends Region{
    * デフォルトはtrue
    * @return
    */
-  public BooleanProperty autoPlotProperty(){
+  public final BooleanProperty autoPlotProperty(){
     if (autoPlotProperty == null) {
       autoPlotProperty = new SimpleBooleanProperty(this, "autoPlot", true);
     }
     return autoPlotProperty;
   }
 
-  public boolean isAutoPlot(){
+  public final boolean isAutoPlot(){
     return autoPlotProperty == null ? true : autoPlotProperty.get();
   }
 
-  public void setAutoPlot(final boolean value){
+  public final void setAutoPlot(final boolean value){
     autoPlotProperty().set(value);
   }
 
@@ -1060,23 +1130,23 @@ public class GraphPlotArea extends Region{
     return plotValidateListener;
   }
 
-  protected boolean isPlotValidate(){
+  protected final boolean isPlotValidate(){
     return plotValidate;
   }
 
-  protected void setPlotValidate(final boolean bool){
+  protected final void setPlotValidate(final boolean bool){
     plotValidate = bool;
   }
 
   /** 状態の正当性を示すプロパティ*/
   private boolean plotValidate = false;
 
-  /** 直接フィールドを利用せずに、 getValidateListener() を利用すること*/
-  private InvalidationListener  plotValidateListener = new InvalidationListener(){
+  protected final InvalidationListener  plotValidateListener = new InvalidationListener(){
     @Override
     public void invalidated(final Observable observable){
       if (isPlotValidate()) {
         setPlotValidate(false);
+        setGraphShapeValidate(false);
         requestLayout();
       }
     }
@@ -1088,18 +1158,18 @@ public class GraphPlotArea extends Region{
    * x軸方向に連続なデータか、y軸方向に連続なデータかを指定するプロパティ
    * @return
    */
-  public ObjectProperty<Orientation> orientationProperty(){
+  public final ObjectProperty<Orientation> orientationProperty(){
     if (orientationProperty == null) {
       orientationProperty = new SimpleObjectProperty<>(this, "orientation", Orientation.HORIZONTAL);
     }
     return orientationProperty;
   }
 
-  public Orientation getOrientation(){
+  public final Orientation getOrientation(){
     return orientationProperty == null ? Orientation.HORIZONTAL : orientationProperty.get();
   }
 
-  public void setOrientation(final Orientation value){
+  public final void setOrientation(final Orientation value){
     orientationProperty().set(value);
   }
 
@@ -1112,7 +1182,7 @@ public class GraphPlotArea extends Region{
 
   private GraphLine verticalZeroLine,horizontalZeroLine;
 
-  public GraphLine getVerticalZeroLine(){
+  public final GraphLine getVerticalZeroLine(){
     if(verticalZeroLine == null){
       verticalZeroLine = new GraphLine();
       verticalZeroLine.setOrientation(Orientation.VERTICAL);
@@ -1121,7 +1191,7 @@ public class GraphPlotArea extends Region{
     return verticalZeroLine;
   }
 
-  public GraphLine getHorizontalZeroLine(){
+  public final GraphLine getHorizontalZeroLine(){
     if(horizontalZeroLine == null){
       horizontalZeroLine = new GraphLine();
       horizontalZeroLine.setOrientation(Orientation.HORIZONTAL);
@@ -1148,6 +1218,10 @@ public class GraphPlotArea extends Region{
     }
   }
 
+
+  public final ObservableList<LineChartData> getDataList(){
+    return linechartData;
+  }
 
 }
 

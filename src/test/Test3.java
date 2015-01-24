@@ -40,7 +40,7 @@ public class Test3 extends Application{
     axis.setVisibleAmount(0.3);
 //    yaxis.setLowerValue(0);
 //    yaxis.setVisibleAmount(0.3);
-    final ObservableList<LineChartData> datas = c.getDatas();
+    final ObservableList<LineChartData> datas = c.getDataList();
     lcd = new LineChartData(200);
     lcd2 = new LineChartData(200);
     //sinを
@@ -75,8 +75,8 @@ public class Test3 extends Application{
       data[i] = sin(x + phase);
       data2[i] = sin(x+phase+0.5);
     }
-    lcd.setDatas(x, data);
-    lcd2.setDatas(x, data2);
+    lcd.setData(x, data);
+    lcd2.setData(x, data2);
   }
 
 
