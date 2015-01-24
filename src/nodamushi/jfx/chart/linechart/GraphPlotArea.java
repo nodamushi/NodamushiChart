@@ -486,8 +486,8 @@ public class GraphPlotArea extends Region{
       final Axis axis = getYAxis();
       final double low=axis.getLowerValue();
       final double up =axis.getUpperValue();
-      start = data.searchXIndex(low, false);
-      end = data.searchXIndex(up, true);
+      start = data.searchYIndex(low, false);
+      end = data.searchYIndex(up, true);
     }
 
     if(end-start < 2000){
@@ -655,7 +655,7 @@ public class GraphPlotArea extends Region{
           //線が途切れていたり、その前も無限の場合は何もしない
           positivInf = x >0;
           if(!moveTo && !fromInfinit){
-            beforeY = positivInf?0:height;
+            beforeX = positivInf?width:0;
             if(elei<esize){
               final PathElement pathElement = elements.get(elei);
               if(pathElement.getClass() == LineTo.class){
@@ -684,10 +684,10 @@ public class GraphPlotArea extends Region{
         x = xaxis.getDisplayPosition(x);
         y = yaxis.getDisplayPosition(y);
 
-        //前回が無限の時は垂直線を書く
+        //前回が無限の時は水平線を書く
         if(fromInfinit){
           beforeY=y;
-          beforeX=positivInf?0:width;
+          beforeX=positivInf?width:0;
           if(elei < esize){
             final PathElement pathElement = elements.get(elei);
             if(pathElement.getClass() == MoveTo.class){//再利用
@@ -841,7 +841,6 @@ public class GraphPlotArea extends Region{
       boolean fromInfinit=false;
       boolean positivInf=false;
       double beforeX = 0,beforeY=0;
-      final int elei=0;
       for(int i=start;i<=end;i++){
         double x = data.getX(i);
         double y = data.getY(i);
@@ -857,7 +856,7 @@ public class GraphPlotArea extends Region{
           //線が途切れていたり、その前も無限の場合は何もしない
           positivInf = x >0;
           if(!moveTo && !fromInfinit){
-            beforeY = positivInf?0:height;
+            beforeX = positivInf?width:0;
             line.add(0, beforeX, beforeY);
           }
           //無限フラグを立てる
@@ -875,7 +874,7 @@ public class GraphPlotArea extends Region{
         //前回が無限の時は垂直線を書く
         if(fromInfinit){
           beforeY=y;
-          beforeX=positivInf?0:width;
+          beforeX=positivInf?width:0;
           line.add(0, beforeX, y);
           moveTo = false;//moveToは不要になる
         }

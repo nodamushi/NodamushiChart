@@ -93,7 +93,7 @@ final class PlotLine{
     if(isx){
       addStoresX();
     }else{
-      //TODO
+      addStoresY();
     }
 
 
@@ -180,15 +180,16 @@ final class PlotLine{
     if(count == 0) {
       return;
     }
-    if(neadmoveto){
-      final A a = get();
-      a.x = beforelast*0.5;
-      a.y = beforeendv;
-      a.mode = moveto;
-      neadmoveto = false;
-    }
+
 
     if(count == 1 || maxv==minv){
+      if(neadmoveto){
+        final A a = get();
+        a.x = beforelast*0.5;
+        a.y = beforeendv;
+        a.mode = moveto;
+        neadmoveto = false;
+      }
       final A a = get();
       a.x = last*0.5;
       a.y = lastv;
@@ -201,10 +202,17 @@ final class PlotLine{
     }
 
     if(beforelast == beforelast){
+
       final double d = beforeendv-maxv,b=beforeendv-minv;
       if(signum(d)*signum(b) > 0){
         //linetoを追加
-
+        if(neadmoveto){
+          final A a = get();
+          a.x = beforelast*0.5;
+          a.y = beforeendv;
+          a.mode = moveto;
+          neadmoveto = false;
+        }
         final A a = get();
         a.x = last*0.5;
         a.y = startv;
@@ -235,6 +243,102 @@ final class PlotLine{
 
 
   private void addY(final int mode,final double x,final double y){
+    if(mode == moveto){
+      addStoresY();
+      count = 0;
+      last=NaN;
+      startv=NaN;minv=NaN;maxv=NaN;lastv=NaN;
 
+      beforelast=NaN;
+      beforeminv=NaN;beforemaxv=NaN;beforeendv=NaN;
+      final A a = get();
+      a.mode = moveto;
+      a.x = x;
+      a.y = y;
+      return;
+    }
+    final double xx = floor(x);
+    final double yy = floor(y*2);
+    if(last != yy){
+      addStoresY();
+      last = yy;
+      startv = x;
+      maxv = xx;
+      minv = xx;
+      lastv = x;
+      count=1;
+      return;
+    }
+
+    count++;
+    lastv = x;
+    maxv = Math.max(maxv, xx);
+    minv = Math.min(minv,xx);
+  }
+
+
+  private void addStoresY(){
+    if(count == 0) {
+      return;
+    }
+
+
+    if(count == 1 || maxv==minv){
+      if(neadmoveto){
+        final A a = get();
+        a.y = beforelast*0.5;
+        a.x = beforeendv;
+        a.mode = moveto;
+        neadmoveto = false;
+      }
+      final A a = get();
+      a.y = last*0.5;
+      a.x = lastv;
+      a.mode = lineto;
+      beforelast = last;
+      beforemaxv = lastv;
+      beforeminv = lastv;
+      beforeendv = lastv;
+      return;
+    }
+
+    if(beforelast == beforelast){
+
+      final double d = beforeendv-maxv,b=beforeendv-minv;
+      if(signum(d)*signum(b) > 0){
+        //linetoを追加
+        if(neadmoveto){
+          final A a = get();
+          a.y = beforelast*0.5;
+          a.x = beforeendv;
+          a.mode = moveto;
+          neadmoveto = false;
+        }
+        final A a = get();
+        a.y = last*0.5;
+        a.x = startv;
+        a.mode = lineto;
+      }
+    }
+
+    //movetoを追加
+    A a = get();
+    a.y = last*0.5;
+    a.x = minv;
+    a.mode = moveto;
+
+    //linetoを追加
+
+    a = get();
+    a.y = last*0.5;
+    a.x = maxv;
+    a.mode = lineto;
+
+    beforelast = last;
+    beforemaxv = maxv;
+    beforeminv = minv;
+    beforeendv = lastv;
+    neadmoveto = true;
+    count = 0;
   }
 }
