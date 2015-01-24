@@ -72,7 +72,7 @@ public class GraphPlotArea extends Region{
     horizontalRowFill = new Path();
     verticalMinorGridLines = new Path();
     horizontalMinorGridLines = new Path();
-    verticalGridLines.setVisible(false);
+    verticalMinorGridLines.setVisible(false);
     horizontalMinorGridLines.setVisible(false);
     verticalRowFill.getStyleClass().setAll("chart-alternative-column-fill");
     horizontalRowFill.getStyleClass().setAll("chart-alternative-row-fill");
@@ -456,6 +456,7 @@ public class GraphPlotArea extends Region{
 
 
   private final double DISTANCE_THRESHOLD = 0.5;
+  private PlotLine plotline = new PlotLine();
   protected void plotLineChartData(final LineChartData data,final Path path,
       final double width,final double height){
     final ObservableList<PathElement> elements = path.getElements();
@@ -465,16 +466,52 @@ public class GraphPlotArea extends Region{
     }else{
       path.setVisible(true);
     }
+
+    if(data.size() < 2000){
+      plotline.clearMemory();
+    }
+
+
+    final Orientation orientation = getOrientation();
+    int start,end;
+    if(orientation==Orientation.HORIZONTAL){//x軸方向昇順
+      final Axis axis =getXAxis();
+      final double low=axis.getLowerValue();
+      final double up =axis.getUpperValue();
+      start = data.searchXIndex(low, false);
+      end = data.searchXIndex(up, true);
+
+    }else{
+
+      final Axis axis = getYAxis();
+      final double low=axis.getLowerValue();
+      final double up =axis.getUpperValue();
+      start = data.searchXIndex(low, false);
+      end = data.searchXIndex(up, true);
+    }
+
+    if(end-start < 2000){
+      plotLineChartData_min(data, path, width, height,start,end);
+    }else{
+      plotline.setOrientationX(getOrientation()==Orientation.HORIZONTAL);
+      plotline.init();
+      plotLineChartData_large(data, path, width, height,start,end);
+      plotline.toElements(elements);
+    }
+
+  }
+
+
+
+  private void plotLineChartData_min(final LineChartData data,final Path path,
+      final double width,final double height,final int start,final int end){
+    final ObservableList<PathElement> elements = path.getElements();
     final int esize = elements.size();
     final Axis xaxis = getXAxis();
     final Axis yaxis = getYAxis();
     final Orientation orientation = getOrientation();
+
     if(orientation==Orientation.HORIZONTAL){//x軸方向昇順
-      final Axis axis = xaxis;
-      final double low=axis.getLowerValue();
-      final double up =axis.getUpperValue();
-      final int start = data.searchXIndex(low, false);
-      final int end = data.searchXIndex(up, true);
       boolean moveTo=true;
       boolean fromInfinit=false;
       boolean positivInf=false;
@@ -498,7 +535,7 @@ public class GraphPlotArea extends Region{
             beforeY = positivInf?0:height;
             if(elei<esize){
               final PathElement pathElement = elements.get(elei);
-              if(pathElement instanceof LineTo){
+              if(pathElement.getClass() == LineTo.class){
                 final LineTo m=((LineTo)pathElement);
                 m.setX(beforeX);
                 m.setY(beforeY);
@@ -530,7 +567,7 @@ public class GraphPlotArea extends Region{
           beforeY=positivInf?0:height;
           if(elei < esize){
             final PathElement pathElement = elements.get(elei);
-            if(pathElement instanceof MoveTo){//再利用
+            if(pathElement.getClass() ==MoveTo.class){//再利用
               final MoveTo m=((MoveTo)pathElement);
               m.setX(x);
               m.setY(beforeY);
@@ -551,7 +588,7 @@ public class GraphPlotArea extends Region{
         if(moveTo){//線が途切れている場合
           if(elei < esize){
             final PathElement pathElement = elements.get(elei);
-            if(pathElement instanceof MoveTo){//再利用
+            if(pathElement.getClass() == MoveTo.class){//再利用
               final MoveTo m=((MoveTo)pathElement);
               m.setX(x);
               m.setY(y);
@@ -575,7 +612,7 @@ public class GraphPlotArea extends Region{
           }
           if(elei < esize){
             final PathElement pathElement = elements.get(elei);
-            if(pathElement instanceof LineTo){
+            if(pathElement.getClass()== LineTo.class){
               final LineTo m=((LineTo)pathElement);
               m.setX(x);
               m.setY(y);
@@ -598,11 +635,6 @@ public class GraphPlotArea extends Region{
       }
     }else{
 
-      final Axis axis = yaxis;
-      final double low=axis.getLowerValue();
-      final double up =axis.getUpperValue();
-      final int start = data.searchXIndex(low, false);
-      final int end = data.searchXIndex(up, true);
       boolean moveTo=true;
       boolean fromInfinit=false;
       boolean positivInf=false;
@@ -626,7 +658,7 @@ public class GraphPlotArea extends Region{
             beforeY = positivInf?0:height;
             if(elei<esize){
               final PathElement pathElement = elements.get(elei);
-              if(pathElement instanceof LineTo){
+              if(pathElement.getClass() == LineTo.class){
                 final LineTo m=((LineTo)pathElement);
                 m.setX(beforeX);
                 m.setY(beforeY);
@@ -658,7 +690,7 @@ public class GraphPlotArea extends Region{
           beforeX=positivInf?0:width;
           if(elei < esize){
             final PathElement pathElement = elements.get(elei);
-            if(pathElement instanceof MoveTo){//再利用
+            if(pathElement.getClass() == MoveTo.class){//再利用
               final MoveTo m=((MoveTo)pathElement);
               m.setX(beforeX);
               m.setY(y);
@@ -679,7 +711,7 @@ public class GraphPlotArea extends Region{
         if(moveTo){//線が途切れている場合
           if(elei < esize){
             final PathElement pathElement = elements.get(elei);
-            if(pathElement instanceof MoveTo){//再利用
+            if(pathElement.getClass() == MoveTo.class){//再利用
               final MoveTo m=((MoveTo)pathElement);
               m.setX(x);
               m.setY(y);
@@ -703,7 +735,7 @@ public class GraphPlotArea extends Region{
           }
           if(elei < esize){
             final PathElement pathElement = elements.get(elei);
-            if(pathElement instanceof LineTo){
+            if(pathElement.getClass() == LineTo.class){
               final LineTo m=((LineTo)pathElement);
               m.setX(x);
               m.setY(y);
@@ -731,6 +763,144 @@ public class GraphPlotArea extends Region{
   }
 
 
+
+  private void plotLineChartData_large(final LineChartData data,final Path path,
+      final double width,final double height,final int start,final int end){
+//    final ObservableList<PathElement> elements = path.getElements();
+//    final int esize = elements.size();
+    final Axis xaxis = getXAxis();
+    final Axis yaxis = getYAxis();
+    final Orientation orientation = getOrientation();
+
+    final PlotLine line = plotline;
+
+    if(orientation==Orientation.HORIZONTAL){//x軸方向昇順
+      boolean moveTo=true;
+      boolean fromInfinit=false;
+      boolean positivInf=false;
+      double beforeX = 0,beforeY=0;
+      for(int i=start;i<=end;i++){
+        double x = data.getX(i);
+        double y = data.getY(i);
+
+        //NaNの場合は線を途切れさせる
+        if(y != y){
+          moveTo = true;
+          fromInfinit = false;
+          continue;
+        }
+        //無限の場合は垂直な線を引く
+        if(Double.isInfinite(y)){
+          //線が途切れていたり、その前も無限の場合は何もしない
+          positivInf = y >0;
+          if(!moveTo && !fromInfinit){
+            beforeY = positivInf?0:height;
+            line.add(1, beforeX, beforeY);
+          }
+          //無限フラグを立てる
+          fromInfinit = true;
+          moveTo=false;
+          //次の処理へ
+          continue;
+        }
+        //実数の処理
+
+        //座標変換
+        x = xaxis.getDisplayPosition(x);
+        y = yaxis.getDisplayPosition(y);
+
+        //前回が無限の時は垂直線を書く
+        if(fromInfinit){
+          beforeX=x;
+          beforeY=positivInf?0:height;
+          line.add(0, x, beforeY);
+          moveTo = false;//moveToは不要になる
+        }
+
+        fromInfinit = false;
+
+        if(moveTo){//線が途切れている場合
+          line.add(0,x,y);
+          moveTo = false;
+          beforeX=x;
+          beforeY=y;
+        }else{//線が続いている場合
+          final double l = hypot(x-beforeX, y-beforeY);
+          //距離が小さすぎる場合は無視
+          if(l < DISTANCE_THRESHOLD) {
+            continue;
+          }
+          line.add(1, x, y);
+          beforeX=x;
+          beforeY=y;
+        }
+      }//end for
+    }else{
+
+      boolean moveTo=true;
+      boolean fromInfinit=false;
+      boolean positivInf=false;
+      double beforeX = 0,beforeY=0;
+      final int elei=0;
+      for(int i=start;i<=end;i++){
+        double x = data.getX(i);
+        double y = data.getY(i);
+
+        //NaNの場合は線を途切れさせる
+        if(x != x){
+          moveTo = true;
+          fromInfinit = false;
+          continue;
+        }
+        //無限の場合は垂直な線を引く
+        if(Double.isInfinite(x)){
+          //線が途切れていたり、その前も無限の場合は何もしない
+          positivInf = x >0;
+          if(!moveTo && !fromInfinit){
+            beforeY = positivInf?0:height;
+            line.add(0, beforeX, beforeY);
+          }
+          //無限フラグを立てる
+          fromInfinit = true;
+          moveTo=false;
+          //次の処理へ
+          continue;
+        }
+        //実数の処理
+
+        //座標変換
+        x = xaxis.getDisplayPosition(x);
+        y = yaxis.getDisplayPosition(y);
+
+        //前回が無限の時は垂直線を書く
+        if(fromInfinit){
+          beforeY=y;
+          beforeX=positivInf?0:width;
+          line.add(0, beforeX, y);
+          moveTo = false;//moveToは不要になる
+        }
+
+        fromInfinit = false;
+
+        if(moveTo){//線が途切れている場合
+          line.add(0,x,y);
+          moveTo = false;
+          beforeY=y;
+          beforeX=x;
+        }else{//線が続いている場合
+          final double l = hypot(x-beforeX, y-beforeY);
+          //距離が小さすぎる場合は無視
+          if(l < DISTANCE_THRESHOLD) {
+            continue;
+          }
+          line.add(1,x,y);
+          beforeY=y;
+          beforeX=x;
+        }
+      }//end for
+    }
+
+  }
 
   //----------------------------------------------------------------
 
@@ -961,7 +1131,7 @@ public class GraphPlotArea extends Region{
       graphShapeValidateListener=new InvalidationListener(){
         @Override
         public void invalidated(final Observable o){
-          final BooleanProperty p = (BooleanProperty)o;
+          final ReadOnlyBooleanProperty p = (ReadOnlyBooleanProperty)o;
           final boolean b = p.get();
           if(!b && isGraphShapeValidate()){
             setGraphShapeValidate(false);

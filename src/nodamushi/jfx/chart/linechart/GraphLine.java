@@ -27,7 +27,7 @@ public class GraphLine extends AbstractGraphShape{
   }
 
   public ObservableList<String> getStyleClass(){
-    return line.getStyleClass();
+    return getNode().getStyleClass();
   }
 
   @Override
