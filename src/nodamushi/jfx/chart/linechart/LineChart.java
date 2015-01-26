@@ -46,7 +46,7 @@ public class LineChart extends Region{
   public LineChart(){
     getStyleClass().setAll("chart");
     graph.setAutoPlot(false);
-    graph.setLineChartDataList(getDataList());
+    graph.setChartData(getDataList());
     graph.xAxisProperty().bind(xAxisProperty());
     graph.yAxisProperty().bind(yAxisProperty());
     graph.orientationProperty().bind(orientationProperty());
@@ -84,7 +84,7 @@ public class LineChart extends Region{
     setLayoutedSize(new Point2D(w, h));
   }
   protected void layoutChildren(double width,double height){
-    if(!isDataValidate()){
+    if(isDataInvalidate()){
       dealWithData();
     }
     final Insets in = getInsets();
@@ -171,10 +171,13 @@ public class LineChart extends Region{
           yAxis.relocate(bounds.getMaxX(), bounds.getMinY());
         }
       }
-      if(resized || !isDataValidate()){
-        if(!prelayout){
+      if(!prelayout){
+        if(resized || isDataInvalidate()){
           graph.plotData();
-          setDataValidate(true);
+          setDataInvalidate(false);
+        }
+        if(graph.isGraphShapeInvalidate()){
+          graph.drawGraphShapes();
         }
       }
     }
@@ -275,9 +278,12 @@ public class LineChart extends Region{
         if(resize){
           graph.resize(graphWidth, graphHeight);
         }
-        if(resize || !isDataValidate()){
+        if(resize || isDataInvalidate()){
           graph.plotData();
-          setDataValidate(true);
+          setDataInvalidate(false);
+        }
+        if(graph.isGraphShapeInvalidate()){
+          graph.drawGraphShapes();
         }
       }
 
@@ -393,34 +399,34 @@ public class LineChart extends Region{
 
 
 
-  protected final InvalidationListener getDataValidateListener(){
-    if (dataValidateListener == null) {
-      dataValidateListener = new InvalidationListener(){
+  protected final InvalidationListener getDataInvalidateListener(){
+    if (dataInvalidateListener == null) {
+      dataInvalidateListener = new InvalidationListener(){
         @Override
         public void invalidated(final Observable observable){
-          if (isDataValidate()) {
-            setDataValidate(false);
+          if (!isDataInvalidate()) {
+            setDataInvalidate(true);
             requestLayout();
           }
         }
       };
     }
-    return dataValidateListener;
+    return dataInvalidateListener;
   }
 
-  protected final boolean isDataValidate(){
-    return datavalidate;
+  protected final boolean isDataInvalidate(){
+    return datainvalidate;
   }
 
-  protected final void setDataValidate(final boolean bool){
-    datavalidate = bool;
+  protected final void setDataInvalidate(final boolean bool){
+    datainvalidate = bool;
   }
 
   /** 直接フィールドを利用せずに、 getValidateListener() を利用すること*/
-  private InvalidationListener dataValidateListener = null;
+  private InvalidationListener dataInvalidateListener = null;
 
   /** 状態の正当性を示すプロパティ*/
-  private boolean datavalidate = false;
+  private boolean datainvalidate = false;
 
   private InvalidationListener lineChartDataListener;
   protected final InvalidationListener getLineChartDataListener(){
@@ -428,8 +434,8 @@ public class LineChart extends Region{
       lineChartDataListener = new InvalidationListener(){
         @Override
         public void invalidated(final Observable o){
-          if(!((ReadOnlyBooleanProperty)o).get() && isDataValidate()){
-            setDataValidate(false);
+          if(((ReadOnlyBooleanProperty)o).get() && !isDataInvalidate()){
+            setDataInvalidate(true);
             requestLayout();
           }
         }
@@ -442,7 +448,7 @@ public class LineChart extends Region{
   public final ObservableList<LineChartData> getDataList(){
     if(datalist == null){
       datalist = FXCollections.observableArrayList();
-      datalist.addListener(getDataValidateListener());
+      datalist.addListener(getDataInvalidateListener());
       datalist.addListener(new ListChangeListener<LineChartData>(){
         @Override
         public void onChanged(final Change<? extends LineChartData> c){
@@ -450,15 +456,15 @@ public class LineChart extends Region{
 
           while(c.next()){
             for(final LineChartData d:c.getRemoved()){
-              d.validateProperty().removeListener(l);
+              d.invalidateProperty().removeListener(l);
             }
 
             for(final LineChartData d:c.getAddedSubList()){
-              d.validateProperty().addListener(l);
+              d.invalidateProperty().addListener(l);
             }
 
-            if(isDataValidate()){
-              setDataValidate(false);
+            if(!isDataInvalidate()){
+              setDataInvalidate(true);
               requestLayout();
             }
           }
@@ -514,7 +520,7 @@ public class LineChart extends Region{
     @Override
     public void changed(final ObservableValue<? extends Axis> observable ,
         final Axis oldValue ,final Axis newValue){
-      final InvalidationListener listener = getDataValidateListener();
+      final InvalidationListener listener = getDataInvalidateListener();
       if(oldValue!=null){
         getChildren().remove(oldValue);
         oldValue.lowerValueProperty().removeListener(listener);
@@ -548,7 +554,7 @@ public class LineChart extends Region{
   public final ObjectProperty<Axis> xAxisProperty(){
     if (xAxisProperty == null) {
       xAxisProperty = new SimpleObjectProperty<>(this, "xAxis", null);
-      xAxisProperty.addListener(getDataValidateListener());
+      xAxisProperty.addListener(getDataInvalidateListener());
       xAxisProperty.addListener(axisListener);
     }
     return xAxisProperty;
@@ -597,7 +603,7 @@ public class LineChart extends Region{
   public final ObjectProperty<Axis> yAxisProperty(){
     if (yAxisProperty == null) {
       yAxisProperty = new SimpleObjectProperty<>(this, "yAxis", null);
-      yAxisProperty.addListener(getDataValidateListener());
+      yAxisProperty.addListener(getDataInvalidateListener());
       yAxisProperty.addListener(axisListener);
     }
     return yAxisProperty;

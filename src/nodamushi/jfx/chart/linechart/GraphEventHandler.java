@@ -11,6 +11,10 @@ import javafx.event.EventHandler;
  */
 public abstract class GraphEventHandler<T extends Event> implements EventHandler<T>{
 
+  protected static GraphPlotArea getPlotAra(final LineChart l){
+    return l.graph;
+  }
+
   public final void install(final LineChart g){
     install(g.graph);
   }

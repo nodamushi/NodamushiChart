@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.AxisZoomHandler;
+import nodamushi.jfx.chart.linechart.GraphTracker;
 import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
@@ -38,19 +39,22 @@ public class Test extends Application{
     c.setYAxis(yaxis);
     final ObservableList<LineChartData> datas = c.getDataList();
     final LineChartData data = new LineChartData(200);
+    final LineChartData data2 = new LineChartData(200);
     //sinc関数を表示してみる
     for(int i=0;i<200;i++){
       final double x = (i-100)*0.1;
       //x = 0は本当は1だけど、無限のテストもかねて
       final double y = x==0? Double.POSITIVE_INFINITY:sin(x)/x;
-
+      final double y2 = cos(x);
       if(testModeX){
         data.addData(x, y);
+        data2.addData(x, y2);
       }else{
         data.addData(y, x);
+        data2.addData(y2, x);
       }
     }
-    datas.add(data);
+    datas.addAll(data,data2);
 
     if(!testModeX) {
       c.setOrientation(Orientation.VERTICAL);
@@ -61,6 +65,9 @@ public class Test extends Application{
     }else{
       c.setRangeMarginY(1);
     }
+
+    final GraphTracker traker = new GraphTracker();
+    traker.install(c);
 
     final BorderPane p = new BorderPane();
     p.setPrefWidth(600);

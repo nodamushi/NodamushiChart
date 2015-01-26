@@ -147,7 +147,7 @@ final class PlotLine{
       count = 0;
       last=NaN;
       startv=NaN;minv=NaN;maxv=NaN;lastv=NaN;
-
+      neadmoveto = false;
       beforelast=NaN;
       beforeminv=NaN;beforemaxv=NaN;beforeendv=NaN;
       final A a = get();
@@ -248,7 +248,7 @@ final class PlotLine{
       count = 0;
       last=NaN;
       startv=NaN;minv=NaN;maxv=NaN;lastv=NaN;
-
+      neadmoveto = false;
       beforelast=NaN;
       beforeminv=NaN;beforemaxv=NaN;beforeendv=NaN;
       final A a = get();

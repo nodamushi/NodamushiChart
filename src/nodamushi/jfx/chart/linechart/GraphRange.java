@@ -34,7 +34,7 @@ public class GraphRange extends AbstractGraphShape{
   public final ObjectProperty<Orientation> orientationProperty(){
     if (orientationProperty == null) {
       orientationProperty = new SimpleObjectProperty<>(this, "orientation", Orientation.HORIZONTAL);
-      orientationProperty.addListener(getValidateListener());
+      orientationProperty.addListener(getInvalidateListener());
     }
     return orientationProperty;
   }
@@ -57,7 +57,7 @@ public class GraphRange extends AbstractGraphShape{
   public final DoubleProperty value1Property(){
     if (value1Property == null) {
       value1Property = new SimpleDoubleProperty(this, "value1", 0);
-      value1Property.addListener(getValidateListener());
+      value1Property.addListener(getInvalidateListener());
     }
     return value1Property;
   }
@@ -81,7 +81,7 @@ public class GraphRange extends AbstractGraphShape{
   public final DoubleProperty value2Property(){
     if (value2Property == null) {
       value2Property = new SimpleDoubleProperty(this, "value2", 1);
-      value2Property.addListener(getValidateListener());
+      value2Property.addListener(getInvalidateListener());
     }
     return value2Property;
   }
@@ -105,7 +105,7 @@ public class GraphRange extends AbstractGraphShape{
   public final BooleanProperty visibleProperty(){
     if (visibleProperty == null) {
       visibleProperty = new SimpleBooleanProperty(this, "visible", true);
-      visibleProperty.addListener(getValidateListener());
+      visibleProperty.addListener(getInvalidateListener());
     }
     return visibleProperty;
   }
@@ -123,7 +123,7 @@ public class GraphRange extends AbstractGraphShape{
 
   @Override
   public void setNodeProperty(final Axis xaxis ,final Axis yaxis,final double w ,final double h){
-    setValidate(true);
+    setInvalidate(false);
     final double v1 =getValue1();
     final double v2 = getValue2();
     final Orientation orientation = getOrientation();

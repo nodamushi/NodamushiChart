@@ -22,6 +22,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.ClosePath;
 import javafx.scene.shape.LineTo;
@@ -46,8 +47,8 @@ public class GraphPlotArea extends Region{
 
   public GraphPlotArea(){
     getStyleClass().setAll("chart-plot-background");
-    widthProperty().addListener(getPlotValidateListener());
-    heightProperty().addListener(getPlotValidateListener());
+    widthProperty().addListener(getPlotInvalidateListener());
+    heightProperty().addListener(getPlotInvalidateListener());
     clip = new Rectangle();
     clip.widthProperty().bind(widthProperty());
     clip.heightProperty().bind(heightProperty());
@@ -106,12 +107,20 @@ public class GraphPlotArea extends Region{
 
   @Override
   protected void layoutChildren(){
-    if(isAutoPlot() && !isPlotValidate()){
+    if(isAutoPlot() && isPlotInvalidate()){
       plotData();
     }
-    if(!isGraphShapeValidate()){
-      drawGraphShapes();
+  }
+
+  @Override
+  public void requestLayout(){
+    if(!isAutoPlot()){
+      final Parent p = getParent();
+      if(p!=null){
+        p.requestLayout();
+      }
     }
+    super.requestLayout();
   }
 
   public void plotData(){
@@ -119,28 +128,28 @@ public class GraphPlotArea extends Region{
     final Axis yaxis = getYAxis();
 
     if(xaxis == null || yaxis ==null){
-      setPlotValidate(true);
-      setGraphShapeValidate(true);
+      setPlotInvalidate(false);
+      setGraphShapeInvalidate(false);
       return;
     }
     final double w = getWidth(),h = getHeight();
     drawGraphShapes();
-    if(!isPlotValidate()){
+    if(isPlotInvalidate()){
       drawBackGroundLine();
       plotLineChartDatas(w,h);
-      setPlotValidate(true);
+      setPlotInvalidate(false);
     }
   }
 
   public void drawGraphShapes(){
-    if(isPlotValidate()&&isGraphShapeValidate()) {
+    if(isPlotInvalidate()&&!isGraphShapeInvalidate()) {
       return;
     }
     final Axis xaxis = getXAxis();
     final Axis yaxis = getYAxis();
 
     if(xaxis == null || yaxis ==null){
-      setGraphShapeValidate(true);
+      setGraphShapeInvalidate(false);
       return;
     }
 
@@ -158,6 +167,7 @@ public class GraphPlotArea extends Region{
         gl.setNodeProperty(xaxis,yaxis, w, h);
       }
     }
+    setGraphShapeInvalidate(false);
   }
 
 
@@ -167,7 +177,7 @@ public class GraphPlotArea extends Region{
     final Axis yaxis = getYAxis();
 
     if(xaxis == null || yaxis ==null){
-      setPlotValidate(true);
+      setPlotInvalidate(false);
       return;
     }
 
@@ -416,7 +426,7 @@ public class GraphPlotArea extends Region{
   protected void plotLineChartDatas(final double width,final double height){
     final Group g = plotArea;
     final ObservableList<Node> paths = g.getChildren();
-    final List<LineChartData> datas = linechartData;
+    final List<LineChartData> datas =getChartData();
     if(datas==null){
       paths.clear();
     }else{
@@ -1045,7 +1055,7 @@ public class GraphPlotArea extends Region{
     @Override
     public void changed(final ObservableValue<? extends Axis> observable ,
         final Axis oldValue ,final Axis newValue){
-      final InvalidationListener listener = getPlotValidateListener();
+      final InvalidationListener listener = getPlotInvalidateListener();
       final boolean isX = observable == xAxisProperty;
 
       if(oldValue!=null){
@@ -1062,8 +1072,8 @@ public class GraphPlotArea extends Region{
         newValue.lowerValueProperty().addListener(listener);
         newValue.upperValueProperty().addListener(listener);
       }
-      if (isPlotValidate()) {
-        setPlotValidate(false);
+      if (!isPlotInvalidate()) {
+        setPlotInvalidate(true);
         requestLayout();
       }
 
@@ -1118,57 +1128,62 @@ public class GraphPlotArea extends Region{
 
 
   private boolean graphshapeValidate=true;
-  protected final void setGraphShapeValidate(final boolean b){
+  protected final void setGraphShapeInvalidate(final boolean b){
     graphshapeValidate = b;
   }
-  protected final boolean isGraphShapeValidate(){
+  public final boolean isGraphShapeInvalidate(){
     return graphshapeValidate;
   }
 
-  private InvalidationListener getGraphShapeValidateListener(){
-    if(graphShapeValidateListener==null){
-      graphShapeValidateListener=new InvalidationListener(){
+  private InvalidationListener getGraphShapeInvalidateListener(){
+    if(graphShapeInvalidateListener==null){
+      graphShapeInvalidateListener=new InvalidationListener(){
         @Override
         public void invalidated(final Observable o){
           final ReadOnlyBooleanProperty p = (ReadOnlyBooleanProperty)o;
           final boolean b = p.get();
-          if(!b && isGraphShapeValidate()){
-            setGraphShapeValidate(false);
+          if(b && !isGraphShapeInvalidate()){
+            setGraphShapeInvalidate(true);
             requestLayout();
           }
         }
       };
     }
-    return graphShapeValidateListener;
+    return graphShapeInvalidateListener;
   }
 
-  private InvalidationListener graphShapeValidateListener;
+  private InvalidationListener graphShapeInvalidateListener;
   private ObservableList<GraphShape> backGroundShapes,foreGroundShapes;
+  private ListChangeListener<GraphShape> shapesListListener;
+  private ListChangeListener<GraphShape> getShapeListListener(){
+    if(shapesListListener==null){
+      shapesListListener = new ListChangeListener<GraphShape>(){
+        @Override
+        public void onChanged(final Change<? extends GraphShape> c){
+          final Group g = c.getList() == backGroundShapes? background:foreground;
+          while(c.next()){
+            final ObservableList<Node> ch = g.getChildren();
+            final InvalidationListener listener = getGraphShapeInvalidateListener();
+            for(final GraphShape gl: c.getRemoved()){
+              ch.remove(gl.getNode());
+              gl.invalidateProperty().removeListener(listener);
+            }
+            for(final GraphShape gl: c.getAddedSubList()){
+              ch.add(gl.getNode());
+              gl.invalidateProperty().addListener(listener);
+            }
+          }
+          setGraphShapeInvalidate(true);
+          requestLayout();
+        }
+      };
+    }
+    return shapesListListener;
+  }
   public final ObservableList<GraphShape> getBackGroundShapes(){
     if(backGroundShapes == null){
       backGroundShapes = FXCollections.observableArrayList();
-      final ListChangeListener<GraphShape> l =new ListChangeListener<GraphShape>(){
-        @Override
-        public void onChanged(final Change<? extends GraphShape> c){
-          c.next();
-          final Group g = background;
-          final ObservableList<Node> ch = g.getChildren();
-          final InvalidationListener listener = getGraphShapeValidateListener();
-          for(final GraphShape gl: c.getRemoved()){
-            ch.remove(gl.getNode());
-            gl.validateProperty().removeListener(listener);
-          }
-          for(final GraphShape gl: c.getAddedSubList()){
-            ch.add(gl.getNode());
-            gl.validateProperty().addListener(listener);
-          }
-          if(isPlotValidate()){
-            setPlotValidate(false);
-            requestLayout();
-          }
-        }
-      };
-      backGroundShapes.addListener(l);
+      backGroundShapes.addListener(getShapeListListener());
     }
     return backGroundShapes;
   }
@@ -1176,54 +1191,17 @@ public class GraphPlotArea extends Region{
   public final ObservableList<GraphShape> getForeGroundShapes(){
     if(foreGroundShapes == null){
       foreGroundShapes = FXCollections.observableArrayList();
-      final ListChangeListener<GraphShape> l =new ListChangeListener<GraphShape>(){
-        @Override
-        public void onChanged(final Change<? extends GraphShape> c){
-          c.next();
-          final Group g = foreground;
-          final ObservableList<Node> ch = g.getChildren();
-          final InvalidationListener listener = getGraphShapeValidateListener();
-          for(final GraphShape gl: c.getRemoved()){
-            ch.remove(gl.getNode());
-            gl.validateProperty().removeListener(listener);
-          }
-          for(final GraphShape gl: c.getAddedSubList()){
-            ch.add(gl.getNode());
-            gl.validateProperty().addListener(listener);
-          }
-          if(isPlotValidate()){
-            setPlotValidate(false);
-            requestLayout();
-          }
-        }
-      };
-      foreGroundShapes.addListener(l);
+      foreGroundShapes.addListener(getShapeListListener());
     }
     return foreGroundShapes;
   }
 
-  private ObservableList<LineChartData> linechartData;
+//  private ObservableList<LineChartData> linechartData;
   private ListChangeListener<LineChartData> dataListListener;
   private InvalidationListener dataListener;
   private BitSet colorIndex = new BitSet(8);
-  protected final InvalidationListener getDataListener(){
-    if(dataListener == null){
-      dataListener = new InvalidationListener(){
-        @Override
-        public void invalidated(final Observable observable){
-          final ReadOnlyBooleanProperty b =(ReadOnlyBooleanProperty)observable;
-          if(!b.get() && isPlotValidate()){
-            setPlotValidate(false);
-            requestLayout();
-          }
-        }
-      };
-    }
-    return dataListener;
-  }
-
-  public final void setLineChartDataList(final ObservableList<LineChartData> datalist){
-    if(dataListener==null){
+  private ListChangeListener<LineChartData> getDataListListener(){
+    if(dataListListener==null){
       dataListListener = new ListChangeListener<LineChartData>(){
         @Override
         public void onChanged(final Change<? extends LineChartData> c){
@@ -1231,44 +1209,91 @@ public class GraphPlotArea extends Region{
           final InvalidationListener dataListener = getDataListener();
           for(final LineChartData d:c.getRemoved()){
             colorIndex.clear(d.defaultColorIndex);
-            d.validateProperty().removeListener(dataListener);
+            d.invalidateProperty().removeListener(dataListener);
           }
           for(final LineChartData d:c.getAddedSubList()){
             d.defaultColorIndex = colorIndex.nextClearBit(0);
             colorIndex.set(d.defaultColorIndex, true);
             d.defaultColor="default-color"+(d.defaultColorIndex%8);
-            d.validateProperty().addListener(dataListener);
+            d.invalidateProperty().addListener(dataListener);
           }
         }
       };
     }
-
-    final ObservableList<LineChartData> old = linechartData;
-    final InvalidationListener dataListener = getDataListener();
-    if(old != null){
-      old.removeListener(dataListListener);
-      for(final LineChartData d:old){
-        d.validateProperty().removeListener(dataListener);
-      }
-      colorIndex.clear();
-    }
-
-    if(datalist!=null){
-      datalist.addListener(dataListListener);
-      for(final LineChartData d:datalist){
-        d.defaultColorIndex = colorIndex.nextClearBit(0);
-        colorIndex.set(d.defaultColorIndex, true);
-        d.defaultColor="default-color"+(d.defaultColorIndex%8);
-        d.validateProperty().addListener(dataListener);
-      }
-    }
-
-    linechartData = datalist;
-    if(isPlotValidate()){
-      setPlotValidate(false);
-      requestLayout();
-    }
+    return dataListListener;
   }
+
+  protected final InvalidationListener getDataListener(){
+    if(dataListener == null){
+      dataListener = new InvalidationListener(){
+        @Override
+        public void invalidated(final Observable o){
+          final ReadOnlyBooleanProperty b = (ReadOnlyBooleanProperty)o;
+          if(b.get() && !isPlotInvalidate()){
+            setPlotInvalidate(true);
+            requestLayout();
+          }
+
+        }
+      };
+    }
+    return dataListener;
+  }
+
+
+  /**
+   *
+   * @return
+   */
+  public final ObjectProperty<ObservableList<LineChartData>> chartDataProperty(){
+    if (chartDataProperty == null) {
+      chartDataProperty = new SimpleObjectProperty<>(this, "chartData", null);
+      chartDataProperty.addListener(new ChangeListener<ObservableList<LineChartData>>(){
+        @Override
+        public void changed(
+            final ObservableValue<? extends ObservableList<LineChartData>> c ,
+            final ObservableList<LineChartData> old ,
+            final ObservableList<LineChartData> datalist){
+              final InvalidationListener dataListener = getDataListener();
+              final ListChangeListener<LineChartData> dataListListener = getDataListListener();
+              if(old != null){
+                old.removeListener(dataListListener);
+                for(final LineChartData d:old){
+                  d.invalidateProperty().removeListener(dataListener);
+                }
+                colorIndex.clear();
+              }
+
+              if(datalist!=null){
+                datalist.addListener(dataListListener);
+                for(final LineChartData d:datalist){
+                  d.defaultColorIndex = colorIndex.nextClearBit(0);
+                  colorIndex.set(d.defaultColorIndex, true);
+                  d.defaultColor="default-color"+(d.defaultColorIndex%8);
+                  d.invalidateProperty().addListener(dataListener);
+                }
+              }
+
+              if(!isPlotInvalidate()){
+                setPlotInvalidate(true);
+                requestLayout();
+              }
+            }
+      });
+    }
+    return chartDataProperty;
+  }
+
+  public final ObservableList<LineChartData> getChartData(){
+    return chartDataProperty == null ? null : chartDataProperty.get();
+  }
+
+  public final void setChartData(final ObservableList<LineChartData> value){
+    chartDataProperty().set(value);
+  }
+
+  private ObjectProperty<ObservableList<LineChartData>> chartDataProperty;
+
 
 
   /**
@@ -1295,27 +1320,27 @@ public class GraphPlotArea extends Region{
   private BooleanProperty autoPlotProperty;
 
 
-  protected InvalidationListener getPlotValidateListener(){
-    return plotValidateListener;
+  protected InvalidationListener getPlotInvalidateListener(){
+    return plotinvalidateListener;
   }
 
-  protected final boolean isPlotValidate(){
-    return plotValidate;
+  protected final boolean isPlotInvalidate(){
+    return plotinvalidate;
   }
 
-  protected final void setPlotValidate(final boolean bool){
-    plotValidate = bool;
+  protected final void setPlotInvalidate(final boolean bool){
+    plotinvalidate = bool;
   }
 
   /** 状態の正当性を示すプロパティ*/
-  private boolean plotValidate = false;
+  private boolean plotinvalidate = false;
 
-  protected final InvalidationListener  plotValidateListener = new InvalidationListener(){
+  protected final InvalidationListener  plotinvalidateListener = new InvalidationListener(){
     @Override
     public void invalidated(final Observable observable){
-      if (isPlotValidate()) {
-        setPlotValidate(false);
-        setGraphShapeValidate(false);
+      if (!isPlotInvalidate()) {
+        setPlotInvalidate(true);
+        setGraphShapeInvalidate(true);
         requestLayout();
       }
     }
@@ -1387,10 +1412,6 @@ public class GraphPlotArea extends Region{
     }
   }
 
-
-  public final ObservableList<LineChartData> getDataList(){
-    return linechartData;
-  }
 
 }
 

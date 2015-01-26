@@ -9,11 +9,17 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.Axis;
 import nodamushi.jfx.chart.linechart.AxisZoomHandler;
+import nodamushi.jfx.chart.linechart.GraphTracker;
 import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
 import nodamushi.jfx.chart.linechart.VGraphs;
-
+/**
+ * 上下二つに並べたLineChartのテスト
+ * x軸のズームなどがリンクしている
+ * @author nodamushi
+ *
+ */
 public class Test4 extends Application{
   public static void main(final String[] args){
     launch(args);
@@ -23,6 +29,7 @@ public class Test4 extends Application{
   public void start(final Stage stage) throws Exception{
     LineChart g1,g2;
     Axis a,b;
+    GraphTracker ag,bg;
     {
       final LinerAxis axis = new LinerAxis();
       a = axis;
@@ -30,14 +37,11 @@ public class Test4 extends Application{
       yaxis.setSide(Side.RIGHT);
       axis.setSide(Side.TOP);
       final LineChart c = new LineChart();
+      ag=new GraphTracker(c);
       c.setTitle("sinc(x)   (*x=0 y=infinity)");
       c.setRangeMarginX(1);
       c.setXAxis(axis);
       c.setYAxis(yaxis);
-      //    axis.setLowerValue(0);
-      //    axis.setVisibleAmount(0.3);
-      //    yaxis.setLowerValue(0);
-      //    yaxis.setVisibleAmount(0.3);
       final ObservableList<LineChartData> datas = c.getDataList();
       final LineChartData data = new LineChartData(200);
       //sinc関数を表示してみる
@@ -56,14 +60,11 @@ public class Test4 extends Application{
       b = axis;
       final LinerAxis yaxis = new LinerAxis();
       final LineChart c = new LineChart();
+      bg = new GraphTracker(c);
       c.setTitle("sinc(x) * 1000   (*x=0 y=infinity)");
       c.setRangeMarginX(1);
       c.setXAxis(axis);
       c.setYAxis(yaxis);
-      //    axis.setLowerValue(0);
-      //    axis.setVisibleAmount(0.3);
-      //    yaxis.setLowerValue(0);
-      //    yaxis.setVisibleAmount(0.3);
       final ObservableList<LineChartData> datas = c.getDataList();
       final LineChartData data = new LineChartData(200);
       //sinc関数を表示してみる
@@ -77,6 +78,7 @@ public class Test4 extends Application{
       datas.add(data);
       g2=c;
     }
+
     final AxisZoomHandler zooma = new AxisZoomHandler();
     zooma.setTargetAxis(a);
     final AxisZoomHandler zoomb = new AxisZoomHandler();
@@ -86,6 +88,7 @@ public class Test4 extends Application{
     zoomb.install(b);
     zoomb.install(g2);
     a.bindBidicalScrollProperties(b);
+    ag.bindBidical(bg);
     final BorderPane p = new BorderPane();
     p.setPrefWidth(600);
     p.setPrefHeight(400);

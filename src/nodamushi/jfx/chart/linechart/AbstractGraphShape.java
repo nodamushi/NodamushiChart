@@ -14,43 +14,43 @@ public abstract class AbstractGraphShape implements GraphShape{
 
 
   @Override
-  public final ReadOnlyBooleanProperty validateProperty(){
-    return validateWrapper().getReadOnlyProperty();
+  public final ReadOnlyBooleanProperty invalidateProperty(){
+    return invalidateWrapper().getReadOnlyProperty();
   }
 
   @Override
-  public final boolean isValidate(){
-    return validateWrapper == null ? false : validateWrapper.get();
+  public final boolean isInvalidate(){
+    return invalidateWrapper == null ? true : invalidateWrapper.get();
   }
 
-  protected final void setValidate(final boolean value){
-    validateWrapper().set(value);
+  protected final void setInvalidate(final boolean value){
+    invalidateWrapper().set(value);
   }
 
   /**
    * validatePropertyのラッパー
    * @return
    */
-  protected final ReadOnlyBooleanWrapper validateWrapper(){
-    if (validateWrapper == null) {
-      validateWrapper = new ReadOnlyBooleanWrapper(this, "validate", false);
+  protected final ReadOnlyBooleanWrapper invalidateWrapper(){
+    if (invalidateWrapper == null) {
+      invalidateWrapper = new ReadOnlyBooleanWrapper(this, "validate", true);
     }
-    return validateWrapper;
+    return invalidateWrapper;
   }
 
-  private ReadOnlyBooleanWrapper validateWrapper;
+  private ReadOnlyBooleanWrapper invalidateWrapper;
 
   /**
    * 変化を受け取ったときにvalidateをfalseに変更するリスナー
    * @return
    */
-  protected final InvalidationListener getValidateListener(){
+  protected final InvalidationListener getInvalidateListener(){
     if (nameValidateListener == null) {
       nameValidateListener = new InvalidationListener(){
         @Override
         public void invalidated(final Observable observable){
-          if (isValidate()) {
-            setValidate(false);
+          if (!isInvalidate()) {
+            setInvalidate(true);
           }
         }
       };

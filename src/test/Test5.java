@@ -45,7 +45,6 @@ public class Test5 extends Application{
     //sinc関数を表示してみる
     for(int i=0;i<datasize;i++){
       final double x = i*0.1;
-      //x = 0は本当は1だけど、無限のテストもかねて
       final double y = sin(x);
 
       if(testModeX){

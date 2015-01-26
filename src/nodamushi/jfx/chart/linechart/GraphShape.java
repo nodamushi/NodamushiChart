@@ -24,10 +24,10 @@ public interface GraphShape{
    * 値が正当かどうか。この値がfalseに変わると、GraphPlotAreaはsetNodePropertyを呼び出す
    * @return
    */
-  public ReadOnlyBooleanProperty validateProperty();
+  public ReadOnlyBooleanProperty invalidateProperty();
   /**
    * 値が正当かどうか。この値がfalseに変わると、GraphPlotAreaはsetNodePropertyを呼び出す
    * @return
    */
-  public boolean isValidate();
+  public boolean isInvalidate();
 }

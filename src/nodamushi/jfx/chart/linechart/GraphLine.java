@@ -32,7 +32,7 @@ public class GraphLine extends AbstractGraphShape{
 
   @Override
   public void setNodeProperty(final Axis xaxis,final Axis yaxis ,final double w ,final double h){
-    setValidate(true);
+    setInvalidate(false);
     final double v = getValue();
     final Line l = getNode();
     final Orientation orientation = getOrientation();
@@ -79,7 +79,7 @@ public class GraphLine extends AbstractGraphShape{
   public final DoubleProperty valueProperty(){
     if (valueProperty == null) {
       valueProperty = new SimpleDoubleProperty(this, "value", 0);
-      valueProperty.addListener(getValidateListener());
+      valueProperty.addListener(getInvalidateListener());
     }
     return valueProperty;
   }
@@ -104,7 +104,7 @@ public class GraphLine extends AbstractGraphShape{
   public final BooleanProperty visibleProperty(){
     if (visibleProperty == null) {
       visibleProperty = new SimpleBooleanProperty(this, "visible", true);
-      visibleProperty.addListener(getValidateListener());
+      visibleProperty.addListener(getInvalidateListener());
     }
     return visibleProperty;
   }
@@ -128,7 +128,7 @@ public class GraphLine extends AbstractGraphShape{
     if (orientationProperty == null) {
       orientationProperty =
           new SimpleObjectProperty<>(this, "orientation", null);
-      orientationProperty.addListener(getValidateListener());
+      orientationProperty.addListener(getInvalidateListener());
     }
     return orientationProperty;
   }

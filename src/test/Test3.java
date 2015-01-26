@@ -11,11 +11,13 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import nodamushi.jfx.chart.linechart.AxisZoomHandler;
+import nodamushi.jfx.chart.linechart.GraphTracker;
+import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
-import nodamushi.jfx.chart.linechart.LineChart;
 /**
- * NLineChartのテスト
+ * NLineChartのアニメーションテスト
  * @author nodamushi
  *
  */
@@ -36,10 +38,6 @@ public class Test3 extends Application{
     c.setRangeMarginX(1);
     c.setXAxis(axis);
     c.setYAxis(yaxis);
-    axis.setLowerValue(0);
-    axis.setVisibleAmount(0.3);
-//    yaxis.setLowerValue(0);
-//    yaxis.setVisibleAmount(0.3);
     final ObservableList<LineChartData> datas = c.getDataList();
     lcd = new LineChartData(200);
     lcd2 = new LineChartData(200);
@@ -56,6 +54,8 @@ public class Test3 extends Application{
     final Scene s = new Scene(p);
     stage.setScene(s);
     stage.show();
+    new GraphTracker(c);
+    new AxisZoomHandler().install(axis);
 
     final Timeline timer = new Timeline(new KeyFrame(Duration.millis(1000/60), new EventHandler<ActionEvent>(){
       @Override
