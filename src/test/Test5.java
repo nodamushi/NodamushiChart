@@ -19,7 +19,7 @@ import nodamushi.jfx.chart.linechart.LinerAxis;
  */
 public class Test5 extends Application{
   //x軸方向に連続なデータか、y軸方向に連続なデータかを変更するフラグ
-  private static final boolean testModeX=false;
+  private static final boolean testModeX=true;
   private static final int datasize = 100000;
 
   public static void main(final String[] args){

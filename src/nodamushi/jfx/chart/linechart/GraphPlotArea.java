@@ -499,7 +499,7 @@ public class GraphPlotArea extends Region{
       start = data.searchYIndex(low, false);
       end = data.searchYIndex(up, true);
     }
-
+    start = max(start-2, 0);
     if(end-start < 2000){
       plotLineChartData_min(data, path, width, height,start,end);
     }else{

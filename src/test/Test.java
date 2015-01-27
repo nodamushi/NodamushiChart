@@ -31,7 +31,7 @@ public class Test extends Application{
     final LinerAxis axis = new LinerAxis();
     final LinerAxis yaxis = new LinerAxis();
     axis.setName("ももも");
-    yaxis.setName("まままfasdfasdfadsfasdfdas");
+    yaxis.setName("ままま");
     final AxisZoomHandler zoom = new AxisZoomHandler();
     zoom.install(axis);
     zoom.install(yaxis);
