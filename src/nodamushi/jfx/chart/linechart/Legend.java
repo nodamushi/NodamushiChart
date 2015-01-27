@@ -12,9 +12,16 @@ import javafx.scene.control.Control;
 
 public class Legend extends Control{
 
+  private static final String BASE_SKIN="-fx-skin:'"+LegendSkinBase.class.getName()+"';";
+
+  public Legend(){
+    setStyle(BASE_SKIN);
+    getStyleClass().add("chart-legend");
+  }
+
 
   /**
-   *
+   * 配置の方向
    * @return
    */
   public final ObjectProperty<Orientation> orientationProperty(){

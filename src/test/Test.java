@@ -9,6 +9,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.AxisZoomHandler;
 import nodamushi.jfx.chart.linechart.GraphTracker;
+import nodamushi.jfx.chart.linechart.Legend;
 import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
 import nodamushi.jfx.chart.linechart.LinerAxis;
@@ -54,6 +55,8 @@ public class Test extends Application{
         data2.addData(y2, x);
       }
     }
+    data.setName("sin(x)/x");
+    data2.setName("cos(x)");
     datas.addAll(data,data2);
 
     if(!testModeX) {
@@ -69,7 +72,12 @@ public class Test extends Application{
     final GraphTracker traker = new GraphTracker();
     traker.install(c);
 
+
+    final Legend legend = new Legend();
+    legend.setDataList(c.getDataList());
+
     final BorderPane p = new BorderPane();
+    p.setTop(legend);
     p.setPrefWidth(600);
     p.setPrefHeight(400);
     p.setCenter(c);
