@@ -6,6 +6,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
@@ -67,10 +68,11 @@ public class LegendSkinBase extends TilePane implements Skin<Legend>{
   };
   public LegendSkinBase(final Legend l){
     super(GAP, GAP);
+    getStyleClass().add("chart-legend");
     legend=l;
     orientationProperty().bind(l.orientationProperty());
     l.dataListProperty().addListener(changelistener);
-
+    setTileAlignment(Pos.CENTER_LEFT);
     makeChildren(l.getDataList(), getChildren());
   }
 

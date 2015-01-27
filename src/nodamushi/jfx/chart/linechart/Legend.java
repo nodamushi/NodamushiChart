@@ -16,7 +16,6 @@ public class Legend extends Control{
 
   public Legend(){
     setStyle(BASE_SKIN);
-    getStyleClass().add("chart-legend");
   }
 
 
