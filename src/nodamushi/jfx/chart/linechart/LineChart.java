@@ -1,6 +1,7 @@
 package nodamushi.jfx.chart.linechart;
 
 import static java.lang.Math.*;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -27,6 +28,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Side;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -127,6 +129,36 @@ public class LineChart extends Region{
       final EventType<T> eventType, final EventHandler<? super T> eventFilter){
     graph.removeEventFilter(eventType, eventFilter);
   }
+  /**
+   * @see GraphPlotArea#getForegroundShapes()
+   * @return
+   */
+  public ObservableList<GraphShape> getForegroundShapes(){
+    return graph.getForegroundShapes();
+  }
+  /**
+   * @see GraphPlotArea#getBackgroundShapes()
+   * @return
+   */
+  public ObservableList<GraphShape> getBackgroundShapes(){
+    return graph.getBackgroundShapes();
+  }
+  /**
+   * @see GraphPlotArea#getBackgroundChildren()()
+   * @return
+   */
+  public ObservableList<Node> getBackgroundChildren(){
+    return graph.getBackgroundChildren();
+  }
+  /**
+   * @see GraphPlotArea#getForegroundChildren()
+   * @return
+   */
+  public ObservableList<Node> getForegroundChildren(){
+    return graph.getForegroundChildren();
+  }
+
+
 
   private static boolean isLeft(final Side s){
     return s != Side.RIGHT;

@@ -12,7 +12,7 @@ import nodamushi.jfx.chart.linechart.AxisZoomHandler;
 import nodamushi.jfx.chart.linechart.GraphTracker;
 import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
-import nodamushi.jfx.chart.linechart.LinerAxis;
+import nodamushi.jfx.chart.linechart.LinearAxis;
 import nodamushi.jfx.chart.linechart.VGraphs;
 /**
  * 上下二つに並べたLineChartのテスト
@@ -31,9 +31,9 @@ public class Test4 extends Application{
     Axis a,b;
     GraphTracker ag,bg;
     {
-      final LinerAxis axis = new LinerAxis();
+      final LinearAxis axis = new LinearAxis();
       a = axis;
-      final LinerAxis yaxis = new LinerAxis();
+      final LinearAxis yaxis = new LinearAxis();
       yaxis.setSide(Side.RIGHT);
       axis.setSide(Side.TOP);
       final LineChart c = new LineChart();
@@ -56,9 +56,9 @@ public class Test4 extends Application{
       g1=c;
     }
     {
-      final LinerAxis axis = new LinerAxis();
+      final LinearAxis axis = new LinearAxis();
       b = axis;
-      final LinerAxis yaxis = new LinerAxis();
+      final LinearAxis yaxis = new LinearAxis();
       final LineChart c = new LineChart();
       bg = new GraphTracker(c);
       c.setTitle("sinc(x) * 1000   (*x=0 y=infinity)");

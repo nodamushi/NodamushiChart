@@ -10,7 +10,7 @@ import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.AxisZoomHandler;
 import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
-import nodamushi.jfx.chart.linechart.LinerAxis;
+import nodamushi.jfx.chart.linechart.LinearAxis;
 
 /**
  * 大量データのレンダリングテスト
@@ -28,8 +28,8 @@ public class Test5 extends Application{
 
   @Override
   public void start(final Stage stage) throws Exception{
-    final LinerAxis axis = new LinerAxis();
-    final LinerAxis yaxis = new LinerAxis();
+    final LinearAxis axis = new LinearAxis();
+    final LinearAxis yaxis = new LinearAxis();
     axis.setName("ももも");
     yaxis.setName("まままfasdfasdfadsfasdfdas");
     final AxisZoomHandler zoom = new AxisZoomHandler();

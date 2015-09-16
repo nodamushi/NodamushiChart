@@ -6,7 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nodamushi.jfx.chart.linechart.LineChartData;
-import nodamushi.jfx.chart.linechart.LinerAxis;
+import nodamushi.jfx.chart.linechart.LinearAxis;
 import nodamushi.jfx.chart.linechart.LogarithmicAxis;
 import nodamushi.jfx.chart.linechart.LineChart;
 
@@ -22,7 +22,7 @@ public class Test2 extends Application{
 
   @Override
   public void start(final Stage stage) throws Exception{
-    final LinerAxis axis = new LinerAxis();
+    final LinearAxis axis = new LinearAxis();
     final LogarithmicAxis yaxis = new LogarithmicAxis();
     final LineChart c = new LineChart();
     c.setHorizontalMinorGridLinesVisible(true);

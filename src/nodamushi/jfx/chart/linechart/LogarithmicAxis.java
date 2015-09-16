@@ -136,7 +136,7 @@ public class LogarithmicAxis extends Axis{
     LabelFormat format = getLabelFormat();
     if(format ==null){
       format = new LogarithmicLabelFormat();
-      setgetLabelFormat(format);
+      setLabelFormat(format);
     }
 
     final ObservableList<AxisLabel> labels = getLabels();

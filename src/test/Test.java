@@ -12,7 +12,7 @@ import nodamushi.jfx.chart.linechart.GraphTracker;
 import nodamushi.jfx.chart.linechart.Legend;
 import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
-import nodamushi.jfx.chart.linechart.LinerAxis;
+import nodamushi.jfx.chart.linechart.LinearAxis;
 /**
  * NLineChartのテスト
  * @author nodamushi
@@ -28,8 +28,8 @@ public class Test extends Application{
 
   @Override
   public void start(final Stage stage) throws Exception{
-    final LinerAxis axis = new LinerAxis();
-    final LinerAxis yaxis = new LinerAxis();
+    final LinearAxis axis = new LinearAxis();
+    final LinearAxis yaxis = new LinearAxis();
     axis.setName("ももも");
     yaxis.setName("ままま");
     final AxisZoomHandler zoom = new AxisZoomHandler();

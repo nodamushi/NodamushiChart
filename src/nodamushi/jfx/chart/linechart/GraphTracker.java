@@ -243,7 +243,7 @@ public class GraphTracker{
       if(points==null || points.size() == 0) {
         return;
       }
-      area.getForeGroundShapes().removeAll(points);
+      area.getForegroundShapes().removeAll(points);
       for(int i=0,e = points.size();i<e;i++){
         final GraphPointShape oldv = points.get(i);
         final GraphPointShape newv = create();
@@ -252,7 +252,7 @@ public class GraphTracker{
         newv.setY(oldv.getY());
         points.set(i, newv);
       }
-      area.getForeGroundShapes().addAll(points);
+      area.getForegroundShapes().addAll(points);
     }
 
     @Override
@@ -279,7 +279,7 @@ public class GraphTracker{
       if(line == null){
         line = new GraphLine();
         line.getStyleClass().add("graph-tracking-line");
-        area.getBackGroundShapes().add(line);
+        area.getBackgroundShapes().add(line);
       }
       if(points == null){
         points = new ArrayList<>(values.length);
@@ -290,7 +290,7 @@ public class GraphTracker{
         for(int i=s;i<values.length;i++){
           points.add(create());
         }
-        area.getForeGroundShapes().addAll(points.subList(s, values.length));
+        area.getForegroundShapes().addAll(points.subList(s, values.length));
       }
 
       line.setValue(v);
@@ -391,11 +391,11 @@ public class GraphTracker{
       g.addEventHandler(MouseEvent.ANY, this);
 
       if(line!=null){
-        g.getBackGroundShapes().add(line);
+        g.getBackgroundShapes().add(line);
       }
 
       if(points!=null){
-        g.getForeGroundShapes().addAll(points);
+        g.getForegroundShapes().addAll(points);
       }
 
       g.chartDataProperty().addListener(changeList);
@@ -412,10 +412,10 @@ public class GraphTracker{
       if(area != null && area == g){
         g.removeEventHandler(MouseEvent.ANY, this);
         if(line!=null){
-          g.getBackGroundShapes().remove(line);
+          g.getBackgroundShapes().remove(line);
         }
         if(points!=null && points.size() != 0){
-          g.getForeGroundShapes().removeAll(points);
+          g.getForegroundShapes().removeAll(points);
         }
         g.chartDataProperty().removeListener(changeList);
         if(g.getChartData()!=null){

@@ -46,6 +46,7 @@ public abstract class Axis extends Region{
    * @author nodamushi
    *
    */
+  @FunctionalInterface
   public static interface AxisParent{
     /**
      * Axisの状態が変化し、グラフの描画が不正確になった通知を受け取るメソッド。
@@ -1306,9 +1307,9 @@ public abstract class Axis extends Region{
    * 数値をラベルに変換するformat
    * @return
    */
-  public final ObjectProperty<LabelFormat> formatProperty(){
+  public final ObjectProperty<LabelFormat> labelFormatProperty(){
     if (formatterProperty == null) {
-      formatterProperty = new SimpleObjectProperty<>(this, "formatter", null);
+      formatterProperty = new SimpleObjectProperty<>(this, "labelFormat", null);
       formatterProperty.addListener(getLayoutValidateListener());
     }
     return formatterProperty;
@@ -1318,8 +1319,8 @@ public abstract class Axis extends Region{
     return formatterProperty == null ? null : formatterProperty.get();
   }
 
-  public final void setgetLabelFormat(final LabelFormat value){
-    formatProperty().set(value);
+  public final void setLabelFormat(final LabelFormat value){
+    labelFormatProperty().set(value);
   }
 
   private ObjectProperty<LabelFormat> formatterProperty;
@@ -1331,8 +1332,20 @@ public abstract class Axis extends Region{
    * @author nodamushi
    *
    */
+  @FunctionalInterface
   public static interface LabelFormat{
+    /**
+     * valueを表現するノードを生成する
+     * @param value
+     * @return
+     */
     public Node format(double value);
+    /**
+     * LinearAxisが利用するメソッド<br/>
+     * 現在利用されている単位配列の番号を設定する。
+     * @param index
+     */
+    default public void setUnitIndex(final int index){}
   }
 
   public static class SimpleLabelFormat implements LabelFormat{
@@ -1348,67 +1361,6 @@ public abstract class Axis extends Region{
       return new Text(String.valueOf(value));
     }
   }
-
-  /**
-   *
-   * TICK_UNIT_DEFAULTSを利用することが前提のフォーマッタ
-   * @author nodemushi
-   *
-   */
-  protected static class DefaultUnitLabelFormat implements LabelFormat{
-
-    private DecimalFormat formatter;
-    private int index = -1;
-    public void setUnitIndex(final int index){
-      if(this.index !=index){
-        formatter = getFormatter(index);
-        this.index = index;
-      }
-    }
-
-    @Override
-    public Node format(final double value){
-      final String str = formatter.format(value);
-      return new Text(str);
-    }
-  }
-
-
-  //------------------------------------------------------------
-
-  // javafx.scene.chart.NumberAxisのコードから引用
-
-  /** We use these for auto ranging to pick a user friendly tick unit. We handle tick units in the range of 1e-10 to 1e+12 */
-  protected static final double[] TICK_UNIT_DEFAULTS = {
-      1.0E-10d, 2.5E-10d, 5.0E-10d, 1.0E-9d, 2.5E-9d, 5.0E-9d, 1.0E-8d, 2.5E-8d, 5.0E-8d, 1.0E-7d, 2.5E-7d, 5.0E-7d,
-      1.0E-6d, 2.5E-6d, 5.0E-6d, 1.0E-5d, 2.5E-5d, 5.0E-5d, 1.0E-4d, 2.5E-4d, 5.0E-4d, 0.0010d, 0.0025d, 0.0050d,
-      0.01d, 0.025d, 0.05d, 0.1d, 0.25d, 0.5d, 1.0d, 2.5d, 5.0d, 10.0d, 25.0d, 50.0d, 100.0d, 250.0d, 500.0d,
-      1000.0d, 2500.0d, 5000.0d, 10000.0d, 25000.0d, 50000.0d, 100000.0d, 250000.0d, 500000.0d, 1000000.0d,
-      2500000.0d, 5000000.0d, 1.0E7d, 2.5E7d, 5.0E7d, 1.0E8d, 2.5E8d, 5.0E8d, 1.0E9d, 2.5E9d, 5.0E9d, 1.0E10d,
-      2.5E10d, 5.0E10d, 1.0E11d, 2.5E11d, 5.0E11d, 1.0E12d, 2.5E12d, 5.0E12d
-  };
-  /** These are matching decimal formatter strings */
-  private static final String[] TICK_UNIT_FORMATTER_DEFAULTS = {"0.0000000000", "0.00000000000", "0.0000000000",
-                                                                "0.000000000", "0.0000000000", "0.000000000",
-                                                                "0.00000000", "0.000000000", "0.00000000",
-                                                                "0.0000000", "0.00000000", "0.0000000", "0.000000",
-                                                                "0.0000000", "0.000000", "0.00000", "0.000000",
-                                                                "0.00000", "0.0000", "0.00000", "0.0000", "0.000",
-                                                                "0.0000", "0.000", "0.00", "0.000", "0.00", "0.0",
-                                                                "0.00", "0.0", "0", "0.0", "0", "#,##0"};
-
-  private static DecimalFormat getFormatter(final int rangeIndex) {
-    if (rangeIndex < 0) {
-      return new DecimalFormat();
-    } else if(rangeIndex >= TICK_UNIT_FORMATTER_DEFAULTS.length) {
-      return new DecimalFormat(TICK_UNIT_FORMATTER_DEFAULTS[TICK_UNIT_FORMATTER_DEFAULTS.length-1]);
-    } else {
-      return new DecimalFormat(TICK_UNIT_FORMATTER_DEFAULTS[rangeIndex]);
-    }
-  }
-
-  //-------------------------引用終わり------------------------------
-
 
 
 

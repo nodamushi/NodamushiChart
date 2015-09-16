@@ -15,7 +15,7 @@ import nodamushi.jfx.chart.linechart.AxisZoomHandler;
 import nodamushi.jfx.chart.linechart.GraphTracker;
 import nodamushi.jfx.chart.linechart.LineChart;
 import nodamushi.jfx.chart.linechart.LineChartData;
-import nodamushi.jfx.chart.linechart.LinerAxis;
+import nodamushi.jfx.chart.linechart.LinearAxis;
 /**
  * NLineChartのアニメーションテスト
  * @author nodamushi
@@ -32,8 +32,8 @@ public class Test3 extends Application{
   private double phase = 0;
   @Override
   public void start(final Stage stage) throws Exception{
-    final LinerAxis axis = new LinerAxis();
-    final LinerAxis yaxis = new LinerAxis();
+    final LinearAxis axis = new LinearAxis();
+    final LinearAxis yaxis = new LinearAxis();
     final LineChart c = new LineChart();
     c.setRangeMarginX(1);
     c.setXAxis(axis);

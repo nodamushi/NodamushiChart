@@ -5,7 +5,7 @@ import javafx.scene.Node;
 
 public interface GraphShape{
   /**
-   * 表示するノード
+   * 表示するノード。nullも可
    * @return
    */
   public Node getNode();

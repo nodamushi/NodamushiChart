@@ -1165,11 +1165,17 @@ public class GraphPlotArea extends Region{
             final ObservableList<Node> ch = g.getChildren();
             final InvalidationListener listener = getGraphShapeInvalidateListener();
             for(final GraphShape gl: c.getRemoved()){
-              ch.remove(gl.getNode());
+              final Node n = gl.getNode();
+              if(n!=null){
+                ch.remove(n);
+              }
               gl.invalidateProperty().removeListener(listener);
             }
             for(final GraphShape gl: c.getAddedSubList()){
-              ch.add(gl.getNode());
+              final Node n = gl.getNode();
+              if(n!=null){
+                ch.add(n);
+              }
               gl.invalidateProperty().addListener(listener);
             }
           }
@@ -1180,7 +1186,7 @@ public class GraphPlotArea extends Region{
     }
     return shapesListListener;
   }
-  public final ObservableList<GraphShape> getBackGroundShapes(){
+  public final ObservableList<GraphShape> getBackgroundShapes(){
     if(backGroundShapes == null){
       backGroundShapes = FXCollections.observableArrayList();
       backGroundShapes.addListener(getShapeListListener());
@@ -1188,7 +1194,7 @@ public class GraphPlotArea extends Region{
     return backGroundShapes;
   }
 
-  public final ObservableList<GraphShape> getForeGroundShapes(){
+  public final ObservableList<GraphShape> getForegroundShapes(){
     if(foreGroundShapes == null){
       foreGroundShapes = FXCollections.observableArrayList();
       foreGroundShapes.addListener(getShapeListListener());
@@ -1396,7 +1402,7 @@ public class GraphPlotArea extends Region{
 
 
   public void showVerticalZeroLine(){
-    final ObservableList<GraphShape> backGroundLine = getBackGroundShapes();
+    final ObservableList<GraphShape> backGroundLine = getBackgroundShapes();
     final GraphLine l = getVerticalZeroLine();
     l.setVisible(true);
     if(!backGroundLine.contains(l)){
@@ -1404,7 +1410,7 @@ public class GraphPlotArea extends Region{
     }
   }
   public void showHorizontalZeroLine(){
-    final ObservableList<GraphShape> backGroundLine = getBackGroundShapes();
+    final ObservableList<GraphShape> backGroundLine = getBackgroundShapes();
     final GraphLine l = getHorizontalZeroLine();
     l.setVisible(true);
     if(!backGroundLine.contains(l)){
