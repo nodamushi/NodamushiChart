@@ -1,6 +1,7 @@
 package nodamushi.jfx.chart.linechart;
 
 import static java.lang.Math.*;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -123,7 +124,7 @@ public class GraphRange extends AbstractGraphShape{
 
   @Override
   public void setNodeProperty(final Axis xaxis ,final Axis yaxis,final double w ,final double h){
-    setInvalidate(false);
+    setValidate(true);
     final double v1 =getValue1();
     final double v2 = getValue2();
     final Orientation orientation = getOrientation();

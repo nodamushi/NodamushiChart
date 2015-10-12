@@ -48,7 +48,7 @@ public class LineChartData{
 
   public void clear(){
     length = 0;
-    setInvalidate(true);
+    setValidate(false);
   }
 
   public void shurink(){
@@ -63,7 +63,7 @@ public class LineChartData{
     }
   }
 
-  public void setCaptcity(final int length){
+  public void setCapacity(final int length){
     if(x.length < length){
       final double[] a=new double[length],b = new double[length];
       System.arraycopy(x,0,a,0,this.length);
@@ -85,7 +85,7 @@ public class LineChartData{
     System.arraycopy(x, offset, this.x, 0, min);
     System.arraycopy(y, offset, this.y, 0, min);
     this.length = min;
-    setInvalidate(true);
+    setValidate(false);
   }
 
   public void setData(final double[] x,final double[] y){
@@ -114,7 +114,7 @@ public class LineChartData{
     System.arraycopy(x, offset, this.x, oldLen, min);
     System.arraycopy(y, offset,this.y,oldLen,min);
     this.length = newlen;
-    setInvalidate(true);
+    setValidate(false);
   }
 
   public void addData(final double[] x,final double[] y){
@@ -141,7 +141,7 @@ public class LineChartData{
 
     this.x[t] = x;
     this.y[t] = y;
-    setInvalidate(true);
+    setValidate(false);
   }
 
 
@@ -172,7 +172,7 @@ public class LineChartData{
     }
     this.x[index] = x;
     this.y[index] = y;
-    setInvalidate(true);
+    setValidate(false);
   }
 
   public void setData(final double x,final double y,final int index){
@@ -184,13 +184,13 @@ public class LineChartData{
     }
     this.x[index] = x;
     this.y[index] = y;
-    setInvalidate(true);
+    setValidate(false);
   }
 
 
 
   public int size(){
-    setInvalidate(false);
+    setValidate(true);
     return length;
   }
 
@@ -201,7 +201,7 @@ public class LineChartData{
     if(index < 0 || index >=length) {
       throw new ArrayIndexOutOfBoundsException(index);
     }
-    setInvalidate(false);
+    setValidate(true);
     return x[index];
   }
 
@@ -210,12 +210,12 @@ public class LineChartData{
     if(index < 0 || index >=length) {
       throw new ArrayIndexOutOfBoundsException(index);
     }
-    setInvalidate(false);
+    setValidate(true);
     return y[index];
   }
 
   public double[] toArrayX(final double[] arr){
-    setInvalidate(false);
+    setValidate(true);
     if(arr == null || arr.length < length){
       return Arrays.copyOf(x, length);
     }
@@ -225,7 +225,7 @@ public class LineChartData{
   }
 
   public double[] toArrayY(final double[] arr){
-    setInvalidate(false);
+    setValidate(true);
     if(arr == null || arr.length < length){
       return Arrays.copyOf(y, length);
     }
@@ -243,7 +243,7 @@ public class LineChartData{
       return;
     }
     qsort(x,y,length);
-    setInvalidate(true);
+    setValidate(false);
   }
   /**
    * y座標のデータを基準にしてソートします。
@@ -254,7 +254,7 @@ public class LineChartData{
       return;
     }
     qsort(y,x,length);
-    setInvalidate(true);
+    setValidate(false);
   }
 
 
@@ -297,7 +297,6 @@ public class LineChartData{
 
   /**
    * <b>このデータがxでソートされているときに限り</b>valueが出てくるインデックスを検索します。
-   * ただし、0以下のインデックスやsizeよりも大きいindexになる場合は、0またはsizeになります。
    * minModeにより、valueを越えない最大インデックスか、valueより大きな最小インデックスを探すかを変えられます。<br>
    * このデータがソートされていないときの挙動は保証しません
    * @param value
@@ -307,7 +306,7 @@ public class LineChartData{
    * @return
    */
   public int searchXIndex(final double value,final boolean minMode){
-    setInvalidate(false);
+    setValidate(true);
     if(minMode){
       return findMinIndex(x, length, value);
     }else{
@@ -317,7 +316,6 @@ public class LineChartData{
 
   /**
    * <b>このデータがyでソートされているときに限り</b>valueが出てくるインデックスを検索します。
-   * ただし、0以下のインデックスやsizeよりも大きいindexになる場合は、0またはsizeになります。
    * minModeにより、valueを越えない最大インデックスか、valueより大きな最小インデックスを探すかを変えられます。<br>
    * このデータがソートされていないときの挙動は保証しません
    * @param value
@@ -327,7 +325,7 @@ public class LineChartData{
    * @return
    */
   public int searchYIndex(final double value,final boolean minMode){
-    setInvalidate(false);
+    setValidate(true);
     if(minMode){
       return findMinIndex(y, length, value);
     }else{
@@ -339,7 +337,6 @@ public class LineChartData{
   /**
    * ※aが昇順に整列されているときに限る。
    * vを越えない最大のaの場所を探索する
-   * ただし、0以下のインデックスやsize-1よりも大きいindexになる場合は、0またはsize-1になります。
    * @param a
    * @param size
    * @param v
@@ -382,8 +379,7 @@ public class LineChartData{
 
   /**
    * ※aが昇順に整列されているときに限る。
-   * vより小さくならない最小のaの場所を探索する。
-   * ただし、0以下のインデックスやsize-1よりも大きいindexになる場合は、0またはsize-1になります。
+   * vより小さくならない最小のaの場所を探索する
    * @param a
    * @param size
    * @param v
@@ -450,7 +446,7 @@ public class LineChartData{
     if(endIndex >= length) {
       endIndex = length-1;
     }
-    setInvalidate(false);
+    setValidate(true);
     return findMaxValue(x, startIndex, endIndex, ignoreInfinit);
   }
   /**
@@ -480,7 +476,7 @@ public class LineChartData{
     if(endIndex >= length) {
       endIndex = length-1;
     }
-    setInvalidate(false);
+    setValidate(true);
     return findMinValue(x, startIndex, endIndex, ignoreInfinit);
   }
   /**
@@ -510,7 +506,7 @@ public class LineChartData{
     if(endIndex >= length) {
       endIndex = length-1;
     }
-    setInvalidate(false);
+    setValidate(true);
     return findMinMaxValue(x, startIndex, endIndex, ignoreInfinit);
   }
 
@@ -542,7 +538,7 @@ public class LineChartData{
     if(endIndex >= length) {
       endIndex = length-1;
     }
-    setInvalidate(false);
+    setValidate(true);
     return findMaxValue(y, startIndex, endIndex, ignoreInfinit);
   }
 
@@ -574,7 +570,7 @@ public class LineChartData{
     if(endIndex >= length) {
       endIndex = length-1;
     }
-    setInvalidate(false);
+    setValidate(true);
     return findMinValue(y, startIndex, endIndex, ignoreInfinit);
   }
   /**
@@ -604,7 +600,7 @@ public class LineChartData{
     if(endIndex >= length) {
       endIndex = length-1;
     }
-    setInvalidate(false);
+    setValidate(true);
     return findMinMaxValue(y, startIndex, endIndex, ignoreInfinit);
   }
 
@@ -672,6 +668,7 @@ public class LineChartData{
   private static double[] findMinMaxValue(final double[] a,int l,final int r,final boolean ignoreInfinit){
     double min = a[l];
     double max = a[l];
+
     if(l == r){
       if(ignoreInfinit && Double.isInfinite(min)){
         return new double[]{Double.NaN,Double.NaN};
@@ -680,7 +677,7 @@ public class LineChartData{
       }
     }
 
-    while(min !=min){
+    while(min !=min || (ignoreInfinit &&Double.isInfinite(min))){
       min=max = a[l++];
       if( l > r) {
         return new double[]{Double.NaN,Double.NaN};
@@ -702,7 +699,7 @@ public class LineChartData{
   }
 
   /**
-   * 名前
+   * 名前。Legendで利用する。
    * @return
    */
   public StringProperty nameProperty(){
@@ -733,24 +730,24 @@ public class LineChartData{
    * get～や、clearなどを呼び出すとtrueになります。
    * @return
    */
-  public ReadOnlyBooleanProperty invalidateProperty(){
-    return invalidateWrapper().getReadOnlyProperty();
+  public ReadOnlyBooleanProperty validateProperty(){
+    return validateWrapper().getReadOnlyProperty();
   }
 
-  public boolean isInvalidate(){
-    return invalidateWrapper == null?false:invalidateWrapper.get();
+  public boolean isValidate(){
+    return validateWrapper == null?false:validateWrapper.get();
   }
 
-  protected void setInvalidate(final boolean value){
-    invalidateWrapper().set(value);
+  protected void setValidate(final boolean value){
+    validateWrapper().set(value);
   }
 
-  protected ReadOnlyBooleanWrapper invalidateWrapper(){
-    if(invalidateWrapper == null){
-      invalidateWrapper = new ReadOnlyBooleanWrapper(this, "invalidate",false);
+  protected ReadOnlyBooleanWrapper validateWrapper(){
+    if(validateWrapper == null){
+      validateWrapper = new ReadOnlyBooleanWrapper(this, "validate",false);
     }
-    return invalidateWrapper;
+    return validateWrapper;
   }
-  private ReadOnlyBooleanWrapper invalidateWrapper;
+  private ReadOnlyBooleanWrapper validateWrapper;
 
 }

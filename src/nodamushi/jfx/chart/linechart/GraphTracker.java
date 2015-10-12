@@ -4,14 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.event.EventType;
 import javafx.geometry.Orientation;
 import javafx.scene.input.MouseEvent;
@@ -243,7 +240,7 @@ public class GraphTracker{
       if(points==null || points.size() == 0) {
         return;
       }
-      area.getForegroundShapes().removeAll(points);
+      area.getForeGroundShapes().removeAll(points);
       for(int i=0,e = points.size();i<e;i++){
         final GraphPointShape oldv = points.get(i);
         final GraphPointShape newv = create();
@@ -252,7 +249,7 @@ public class GraphTracker{
         newv.setY(oldv.getY());
         points.set(i, newv);
       }
-      area.getForegroundShapes().addAll(points);
+      area.getForeGroundShapes().addAll(points);
     }
 
     @Override
@@ -279,7 +276,7 @@ public class GraphTracker{
       if(line == null){
         line = new GraphLine();
         line.getStyleClass().add("graph-tracking-line");
-        area.getBackgroundShapes().add(line);
+        area.getBackGroundShapes().add(line);
       }
       if(points == null){
         points = new ArrayList<>(values.length);
@@ -290,7 +287,7 @@ public class GraphTracker{
         for(int i=s;i<values.length;i++){
           points.add(create());
         }
-        area.getForegroundShapes().addAll(points.subList(s, values.length));
+        area.getForeGroundShapes().addAll(points.subList(s, values.length));
       }
 
       line.setValue(v);
@@ -329,59 +326,16 @@ public class GraphTracker{
       return true;
     }
 
-    InvalidationListener invalidatelistener = new InvalidationListener(){
-
-      @Override
-      public void invalidated(final Observable o){
-        final ReadOnlyBooleanProperty b =(ReadOnlyBooleanProperty)o;
-        if(b.get()){
-          //TODO requestLayoutと違って無駄な計算が多すぎる
-          //呼び出しタイミングをコントロールできないかな？
-          rehandle();
-        }
-      }
-    };
-
-    private ChangeListener<ObservableList<LineChartData>> changeList =
-        new ChangeListener<ObservableList<LineChartData>>(){
-      ListChangeListener<LineChartData> ll =new ListChangeListener<LineChartData>(){
-        @Override
-        public void onChanged(final Change<? extends LineChartData> c){
-          while(c.next()){
-            if(c.getRemovedSize()!=0){
-              for(final LineChartData d:c.getRemoved()){
-                d.invalidateProperty().removeListener(invalidatelistener);
-              }
-            }
-            if(c.getAddedSize()!=0){
-              for(final LineChartData d:c.getAddedSubList()){
-                d.invalidateProperty().addListener(invalidatelistener);
-              }
-            }
-          }
-        }
-      };
-
-      @Override
-      public void changed(
-          final ObservableValue<? extends ObservableList<LineChartData>> c ,
-              final ObservableList<LineChartData> old ,final ObservableList<LineChartData> n){
-        if(old!=null){
-          for(final LineChartData d:old){
-            d.invalidateProperty().removeListener(invalidatelistener);
-          }
-          old.removeListener(ll);
-        }
-
-        if(n!=null){
-          for(final LineChartData d:n){
-            d.invalidateProperty().addListener(invalidatelistener);
-          }
-          n.addListener(ll);
-        }
+    InvalidationListener invalidatelistener =o->{
+      final ReadOnlyBooleanProperty b =(ReadOnlyBooleanProperty)o;
+      if(!b.get()){
+        //TODO requestLayoutと違って無駄な計算が多すぎる
+        //呼び出しタイミングをコントロールできないかな？
         rehandle();
       }
     };
+
+
     @Override
     public void install(final GraphPlotArea g){
       if(area!=null){
@@ -391,19 +345,18 @@ public class GraphTracker{
       g.addEventHandler(MouseEvent.ANY, this);
 
       if(line!=null){
-        g.getBackgroundShapes().add(line);
+        g.getBackGroundShapes().add(line);
       }
 
       if(points!=null){
-        g.getForegroundShapes().addAll(points);
+        g.getForeGroundShapes().addAll(points);
       }
 
-      g.chartDataProperty().addListener(changeList);
-      if(g.getChartData()!=null){
-        for(final LineChartData d:g.getChartData()){
-          d.invalidateProperty().addListener(invalidatelistener);
-        }
+
+      for(final LineChartData d:g.getDataList()){
+        d.validateProperty().addListener(invalidatelistener);
       }
+
 
     }
 
@@ -412,16 +365,13 @@ public class GraphTracker{
       if(area != null && area == g){
         g.removeEventHandler(MouseEvent.ANY, this);
         if(line!=null){
-          g.getBackgroundShapes().remove(line);
+          g.getBackGroundShapes().remove(line);
         }
         if(points!=null && points.size() != 0){
-          g.getForegroundShapes().removeAll(points);
+          g.getForeGroundShapes().removeAll(points);
         }
-        g.chartDataProperty().removeListener(changeList);
-        if(g.getChartData()!=null){
-          for(final LineChartData d:g.getChartData()){
-            d.invalidateProperty().removeListener(invalidatelistener);
-          }
+        for(final LineChartData d:g.getDataList()){
+          d.validateProperty().removeListener(invalidatelistener);
         }
 
         dispose();

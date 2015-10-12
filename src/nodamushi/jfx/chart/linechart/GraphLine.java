@@ -32,7 +32,7 @@ public class GraphLine extends AbstractGraphShape{
 
   @Override
   public void setNodeProperty(final Axis xaxis,final Axis yaxis ,final double w ,final double h){
-    setInvalidate(false);
+    setValidate(true);
     final double v = getValue();
     final Line l = getNode();
     final Orientation orientation = getOrientation();

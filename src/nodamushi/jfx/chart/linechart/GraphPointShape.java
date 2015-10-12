@@ -16,7 +16,7 @@ public abstract class GraphPointShape extends AbstractGraphShape{
 
   @Override
   public void setNodeProperty(final Axis xaxis ,final Axis yaxis ,final double w ,final double h){
-    setInvalidate(false);
+    setValidate(true);
     final double x = xaxis.getDisplayPosition(getX());
     final double y = yaxis.getDisplayPosition(getY());
     final Node c = getNode();

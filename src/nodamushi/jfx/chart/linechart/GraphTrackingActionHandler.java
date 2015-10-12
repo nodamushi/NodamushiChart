@@ -53,7 +53,7 @@ public abstract class GraphTrackingActionHandler extends GraphEventHandler<Mouse
    */
   private final boolean _handle(final MouseEvent e,final GraphPlotArea a,final double v,final double[] arr,
       final Orientation o){
-    final ObservableList<LineChartData> dataList = a.getChartData();
+    final ObservableList<LineChartData> dataList = a.getDataList();
     final int dsize =arr.length;
     if(a.getOrientation()!=o){
       return false;
@@ -123,7 +123,7 @@ public abstract class GraphTrackingActionHandler extends GraphEventHandler<Mouse
       return;
     }
     final GraphPlotArea a = (GraphPlotArea) e.getSource();
-    final ObservableList<LineChartData> dataList = a.getChartData();
+    final ObservableList<LineChartData> dataList = a.getDataList();
     final int dsize = dataList==null?0:dataList.size();
     final double[] arr=getARR(dsize);
 
@@ -160,7 +160,7 @@ public abstract class GraphTrackingActionHandler extends GraphEventHandler<Mouse
   private void bindHandle(final MouseEvent e,final double v,final Orientation o){
     final GraphPlotArea a = getTargetPlotArea();
     if(a!=null && o==a.getOrientation()){
-      final ObservableList<LineChartData> dataList = a.getChartData();
+      final ObservableList<LineChartData> dataList = a.getDataList();
       final int dsize = dataList==null?0:dataList.size();
       final double[] arr=getARR(dsize);
       if(!_handle(e,a, v, arr, o)){return;}

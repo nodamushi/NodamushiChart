@@ -10,6 +10,12 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
 
+/**
+ * グラフのレジェンドの表示をする。<br/>
+ * 表示される名前はLiceChartDataのnamePropertyを利用する。
+ * @author nodamushi
+ *
+ */
 public class Legend extends Control{
 
   private static final String BASE_SKIN="-fx-skin:'"+LegendSkinBase.class.getName()+"';";

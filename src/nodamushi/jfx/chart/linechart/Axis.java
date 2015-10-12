@@ -3,8 +3,8 @@ package nodamushi.jfx.chart.linechart;
 import static java.lang.Math.*;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -40,13 +40,11 @@ import javafx.scene.shape.PathElement;
 import javafx.scene.text.Text;
 
 public abstract class Axis extends Region{
-
   /**
    * NAxisの状態の変化を受け取る必要がある親を定義するインターフェース
    * @author nodamushi
    *
    */
-  @FunctionalInterface
   public static interface AxisParent{
     /**
      * Axisの状態が変化し、グラフの描画が不正確になった通知を受け取るメソッド。
@@ -58,25 +56,22 @@ public abstract class Axis extends Region{
 
   public Axis(){
     getStyleClass().add("axis");
-    dataValidateListener = new InvalidationListener(){
-      @Override
-      public void invalidated(final Observable observable){
-        if(widthProperty() == observable){
-          if(getOrientation() != Orientation.HORIZONTAL||
-              getWidth()==lastLayoutWidth){
-            return;
-          }
+    dataValidateListener = observable -> {
+      if(widthProperty() == observable){
+        if(getOrientation() != Orientation.HORIZONTAL||
+            getWidth()==lastLayoutWidth){
+          return;
         }
-        if(heightProperty() == observable ){
-          if(getOrientation()!=Orientation.VERTICAL||
-              getHeight()==lastLayoutHeight){
-            return;
-          }
+      }
+      if(heightProperty() == observable ){
+        if(getOrientation()!=Orientation.VERTICAL||
+            getHeight()==lastLayoutHeight){
+          return;
         }
-        if (isDataValidate()) {
-          setDataValidate(false);
-          requestLayout();
-        }
+      }
+      if (isDataValidate()) {
+        setDataValidate(false);
+        requestLayout();
       }
     };
     widthProperty().addListener(dataValidateListener);
@@ -359,24 +354,24 @@ public abstract class Axis extends Region{
     a.unbindBidicalScrollPropertyies();
     final InvalidationListener listener = new InvalidationListener(){
       private boolean
-//      b1=true,
+      //      b1=true,
       b2=true,
       b3=true;
       @Override
       public void invalidated(final Observable observable){
         final Property<?> p = (Property<?>)observable;
         switch(p.getName()){
-//          case "scrollBarVisible":
-//            if(b1){
-//              b1 = false;
-//              if(p.getBean() == Axis.this){
-//                a.setScrollBarVisible(isScrollBarVisible());
-//              }else{
-//                setScrollBarVisible(a.isScrollBarVisible());
-//              }
-//              b1 = true;
-//            }
-//            break;
+          //          case "scrollBarVisible":
+          //            if(b1){
+          //              b1 = false;
+          //              if(p.getBean() == Axis.this){
+          //                a.setScrollBarVisible(isScrollBarVisible());
+          //              }else{
+          //                setScrollBarVisible(a.isScrollBarVisible());
+          //              }
+          //              b1 = true;
+          //            }
+          //            break;
           case "visibleAmount":
             if(b2){
               b2 = false;
@@ -403,8 +398,8 @@ public abstract class Axis extends Region{
         }
       }
     };
-//    scrollBarVisibleProperty().addListener(listener);
-//    a.scrollBarVisibleProperty().addListener(listener);
+    //    scrollBarVisibleProperty().addListener(listener);
+    //    a.scrollBarVisibleProperty().addListener(listener);
     visibleAmountProperty().addListener(listener);
     a.visibleAmountProperty().addListener(listener);
     lowerValueProperty().addListener(listener);
@@ -417,7 +412,7 @@ public abstract class Axis extends Region{
 
 
   public void unbindBidicalScrollPropertyies(){
-//    unbind(scrollBarVisibleProperty());
+    //    unbind(scrollBarVisibleProperty());
     unbind(visibleAmountProperty());
     unbind(lowerValueProperty());
     if(scrollbarBindListener!=null){
@@ -431,7 +426,7 @@ public abstract class Axis extends Region{
   }
 
   private void _unbindScrollProp(){
-//    scrollBarVisibleProperty().removeListener(scrollbarBindListener);
+    //    scrollBarVisibleProperty().removeListener(scrollbarBindListener);
     visibleAmountProperty().removeListener(scrollbarBindListener);
     lowerValueProperty().removeListener(scrollbarBindListener);
     scrollbarBindListener=null;
@@ -498,7 +493,7 @@ public abstract class Axis extends Region{
   public final Side getSide(){
     return sideProperty == null ?
         getOrientation()!=Orientation.VERTICAL?Side.BOTTOM:Side.LEFT :
-      sideProperty.get();
+          sideProperty.get();
   }
 
   public final void setSide(final Side value){
@@ -692,15 +687,15 @@ public abstract class Axis extends Region{
               final double d = isHorizontal()?
                   getScrollBarValue():
                     1-getScrollBarValue();
-              scroll.setValue(d);
+                  scroll.setValue(d);
             }
           }else if(doflag && scroll!=null && observable!=scroll.valueProperty()){
             doflag=false;
             final double d = isHorizontal()?
                 getScrollBarValue():
                   1-getScrollBarValue();
-            scroll.setValue(d);
-            doflag = true;
+                scroll.setValue(d);
+                doflag = true;
           }
         }
       };
@@ -838,23 +833,20 @@ public abstract class Axis extends Region{
   protected final ObservableList<AxisLabel> getLabels(){
     if(labels==null){
       labels=FXCollections.observableArrayList();
-      labels.addListener(new ListChangeListener<AxisLabel>(){
-        @Override
-        public void onChanged(final Change<? extends AxisLabel> c){
-          final ObservableList<Node> list = labelGroup.getChildren();
-          final DoubleProperty rp = tickLabelRotateProperty();
-          while(c.next()){
+      labels.addListener((ListChangeListener<AxisLabel>) c -> {
+        final ObservableList<Node> list = labelGroup.getChildren();
+        final DoubleProperty rp = tickLabelRotateProperty();
+        while(c.next()){
 
-            for(final AxisLabel a:c.getRemoved()){
-              list.remove(a.getNode());
-              a.setManaged(false);
-              a.getNode().rotateProperty().unbind();
-            }
-            for(final AxisLabel a:c.getAddedSubList()){
-              list.add(a.getNode());
-              a.getNode().setVisible(false);
-              a.getNode().rotateProperty().bind(rp);
-            }
+          for(final AxisLabel a1:c.getRemoved()){
+            list.remove(a1.getNode());
+            a1.setManaged(false);
+            a1.getNode().rotateProperty().unbind();
+          }
+          for(final AxisLabel a2:c.getAddedSubList()){
+            list.add(a2.getNode());
+            a2.getNode().setVisible(false);
+            a2.getNode().rotateProperty().bind(rp);
           }
         }
       });
@@ -872,7 +864,7 @@ public abstract class Axis extends Region{
       layoutChildren(lastLayoutWidth, height);
       final double w2 = scroll.isVisible()?scroll.getWidth():0;
 
-      final double w3 = labelGroup.prefWidth(height);
+      final double w3 = max(labelGroup.prefWidth(height),10);
       double w4 = 0;
       if(nameLabel.isVisible()){
         w4 = nameLabel.getHeight()+5;
@@ -891,7 +883,7 @@ public abstract class Axis extends Region{
 
       layoutChildren(width, lastLayoutHeight);
       final double h2 = scroll.isVisible()? scroll.getHeight():0;
-      final double h3 = labelGroup.prefHeight(width);
+      final double h3 = max(labelGroup.prefHeight(width),10);
       double h4 = 0;
       if(nameLabel.isVisible()){
         h4 = nameLabel.getHeight()+5;
@@ -921,15 +913,10 @@ public abstract class Axis extends Region{
       scroll = new ScrollBar();
       scroll.orientationProperty().bind(orientationProperty());
       scroll.visibleProperty().bind(
-          Bindings.createBooleanBinding(new Callable<Boolean>(){
-        @Override
-        public Boolean call() throws Exception{
-          return isScrollBarVisible() &&
+          Bindings.createBooleanBinding(() -> isScrollBarVisible() &&
               getScrollBarValue()!=-1 &&
-              getScrollVisibleAmount()!=1;
-        }
-      }, scrollBarValueProperty(),
-      scrollBarVisibleProperty(),scrollVisibleAmountWrapper()));
+              getScrollVisibleAmount()!=1, scrollBarValueProperty(),
+              scrollBarVisibleProperty(),scrollVisibleAmountWrapper()));
       scroll.visibleProperty().addListener(getLayoutValidateListener());
       scroll.valueProperty().addListener(getScrollValueListener());
       scroll.setMin(0);
@@ -1059,7 +1046,6 @@ public abstract class Axis extends Region{
     final boolean ish = isHorizontal();
     final String n = getName();
     nameLabel.setVisible(n!=null && !n.isEmpty());
-
     if(ish){
       nameLabel.setRotate(0);
       if(getSide()!=Side.TOP){//BOTTOM
@@ -1074,7 +1060,7 @@ public abstract class Axis extends Region{
         labelGroup.setLayoutX(0);
         labelGroup.setLayoutY(floor(y));
         if(nameLabel.isVisible()){
-          y+=labelGroup.prefHeight(-1)+5;
+          y+=max(labelGroup.prefHeight(-1)+5,15);
           final double w = min(nameLabel.prefWidth(-1),width);
           final double h = nameLabel.prefHeight(w);
           nameLabel.resize(w, h);
@@ -1093,7 +1079,7 @@ public abstract class Axis extends Region{
         labelGroup.setLayoutX(0);
         labelGroup.setLayoutY(floor(y));
         if(nameLabel.isVisible()){
-          y-=labelGroup.prefHeight(-1)+5;
+          y-=max(labelGroup.prefHeight(-1)+5,15);
           final double w = min(nameLabel.prefWidth(-1),width);
           final double h = nameLabel.prefHeight(w);
           nameLabel.resize(w, h);
@@ -1142,7 +1128,7 @@ public abstract class Axis extends Region{
           final double h = nameLabel.prefHeight(w);
           nameLabel.resize(w, h);
           final Bounds b = nameLabel.getBoundsInParent();
-          x+=labelGroup.prefWidth(-1)+5;
+          x+=max(labelGroup.prefWidth(-1)+5,15);
           nameLabel.relocate(floor(x-b.getMinX()+nameLabel.getLayoutX()), floor((height-b.getHeight())*0.5-b.getMinY()+nameLabel.getLayoutY()));
         }
       }
@@ -1166,7 +1152,7 @@ public abstract class Axis extends Region{
     final Side s = getSide();
     final int k =
         ish?s!=Side.TOP?1:-1:
-            s!=Side.RIGHT?-1:1;
+          s!=Side.RIGHT?-1:1;
 
     if(isIV){
       final List<Double> list = getMinorTicks();
@@ -1264,13 +1250,10 @@ public abstract class Axis extends Region{
    */
   protected final InvalidationListener getLayoutValidateListener(){
     if (layoutValidateListener == null) {
-      layoutValidateListener = new InvalidationListener(){
-        @Override
-        public void invalidated(final Observable observable){
-          if (isLayoutValidate()) {
-            setLayoutValidate(false);
-            requestLayout();
-          }
+      layoutValidateListener = observable -> {
+        if (isLayoutValidate()) {
+          setLayoutValidate(false);
+          requestLayout();
         }
       };
     }
@@ -1307,9 +1290,9 @@ public abstract class Axis extends Region{
    * 数値をラベルに変換するformat
    * @return
    */
-  public final ObjectProperty<LabelFormat> labelFormatProperty(){
+  public final ObjectProperty<LabelFormat> formatProperty(){
     if (formatterProperty == null) {
-      formatterProperty = new SimpleObjectProperty<>(this, "labelFormat", null);
+      formatterProperty = new SimpleObjectProperty<>(this, "formatter", null);
       formatterProperty.addListener(getLayoutValidateListener());
     }
     return formatterProperty;
@@ -1320,51 +1303,70 @@ public abstract class Axis extends Region{
   }
 
   public final void setLabelFormat(final LabelFormat value){
-    labelFormatProperty().set(value);
+    formatProperty().set(value);
   }
 
   private ObjectProperty<LabelFormat> formatterProperty;
 
 
+  /**
+   * コンストラクタに渡された配列のクローンを保持する。<br/>
+   * なお、配列の要素は昇順にソートされる。
+   * @author nodamushi
+   */
+  public static final class ConstantDArray{
+    private final double[] array;
+    /**
+     * パッケージ用コンストラクタ。
+     * @param clone 配列のクローンを作成し、ソートするかどうか。
+     * 昇順、要素の変更をしないことを約束した上で、メモリが無駄な場合はfalseにする。
+     * @param array 保持する配列。
+     */
+    ConstantDArray(final boolean clone,final double[] array){
+      this.array = clone? array.clone():array;
+      if(clone){
+        Arrays.sort(this.array);
+      }
+    }
+    public ConstantDArray(final double[] array){this(true,array);}
+    /**配列要素を取り出す*/
+    public double get(final int index)throws ArrayIndexOutOfBoundsException{return array[index];}
+    /**配列長を返す*/
+    public int length(){return array.length;}
+    /**クローン配列を返す*/
+    public double[] getArray(){return array.clone();}
+    /**配列に値をコピーする*/
+    public void copy(final double[] arr){
+      if(arr != null){
+        System.arraycopy(array, 0, arr, 0, min(array.length, arr.length));
+      }
+    }
+  }
 
   /**
    * 数値からラベル文字列に変換するインターフェース
-   * @author nodamushi
-   *
    */
-  @FunctionalInterface
   public static interface LabelFormat{
     /**
-     * valueを表現するノードを生成する
-     * @param value
+     * valueを表示するノードを生成する
+     * @param value 表示する値
      * @return
      */
     public Node format(double value);
     /**
-     * LinearAxisが利用するメソッド<br/>
-     * 現在利用されている単位配列の番号を設定する。
+     * 主にLinearAxisから利用する。<br/>
+     * getArrayで得られる配列のindex番目の要素を利用することを通知する。<br/>
+     * 必ず、formatより先に呼ばれる。
      * @param index
      */
     default public void setUnitIndex(final int index){}
+    /**
+     * 主にLinearAxisから利用する。<br/>
+     * この配列の値を用いて表示するメモリの幅を決定する。<br/>
+     * @return
+     */
+    default public ConstantDArray getArray(){return null;};
   }
-
-  public static class SimpleLabelFormat implements LabelFormat{
-    private DecimalFormat integerFormatter =
-        new DecimalFormat("###,###,###,###,###,###");
-    @Override
-    public Node format(final double value){
-      final double f = floor(value);
-      if(f == value){
-        final String str = integerFormatter.format(value);
-        return new Text(str);
-      }
-      return new Text(String.valueOf(value));
-    }
-  }
-
-
-
-
 
 
 

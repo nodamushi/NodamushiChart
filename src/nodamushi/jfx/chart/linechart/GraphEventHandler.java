@@ -11,7 +11,7 @@ import javafx.event.EventHandler;
  */
 public abstract class GraphEventHandler<T extends Event> implements EventHandler<T>{
 
-  protected static GraphPlotArea getPlotAra(final LineChart l){
+  protected final static GraphPlotArea getPlotArea(final LineChart l){
     return l.graph;
   }
 

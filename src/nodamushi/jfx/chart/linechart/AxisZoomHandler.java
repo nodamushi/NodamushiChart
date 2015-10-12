@@ -3,15 +3,20 @@ package nodamushi.jfx.chart.linechart;
 
 
 import static java.lang.Math.*;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.input.ScrollEvent;
 
 public class AxisZoomHandler implements EventHandler<ScrollEvent>{
+
+
+
 
 
   /**
@@ -101,6 +106,14 @@ public class AxisZoomHandler implements EventHandler<ScrollEvent>{
     return target;
   }
 
+  private static Axis getEventTargetAxis(final Event event){
+    final Object o = event.getSource();
+
+    if(!(o instanceof Axis)) {
+      return null;
+    }
+    return (Axis)o;
+  }
 
 
   @Override
@@ -108,14 +121,13 @@ public class AxisZoomHandler implements EventHandler<ScrollEvent>{
     if(isDisable()){
       return;
     }
-    final Object o = event.getSource();
     Axis a = getTargetAxis();
 
     if(a==null){
-      if(!(o instanceof Axis)) {
+      a = getEventTargetAxis(event);
+      if(a == null) {
         return;
       }
-      a = (Axis)o;
     }
 
     final double d=event.getDeltaY()*getScrollSpeed();

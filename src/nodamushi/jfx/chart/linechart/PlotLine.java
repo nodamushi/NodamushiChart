@@ -147,9 +147,10 @@ final class PlotLine{
       count = 0;
       last=NaN;
       startv=NaN;minv=NaN;maxv=NaN;lastv=NaN;
-      neadmoveto = false;
+
       beforelast=NaN;
       beforeminv=NaN;beforemaxv=NaN;beforeendv=NaN;
+      neadmoveto=false;
       final A a = get();
       a.mode = moveto;
       a.x = x;
@@ -248,9 +249,10 @@ final class PlotLine{
       count = 0;
       last=NaN;
       startv=NaN;minv=NaN;maxv=NaN;lastv=NaN;
-      neadmoveto = false;
+
       beforelast=NaN;
       beforeminv=NaN;beforemaxv=NaN;beforeendv=NaN;
+      neadmoveto=false;
       final A a = get();
       a.mode = moveto;
       a.x = x;

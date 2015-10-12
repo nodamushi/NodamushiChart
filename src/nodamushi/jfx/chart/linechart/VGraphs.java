@@ -20,10 +20,13 @@ import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
-
-@GraphContainer
+/**
+ * 縦方向に複数のグラフを表示する。<br/>
+ * そのとき、グラフの両端がそろうようにレイアウトする。
+ * @author nodamushi
+ *
+ */
 public class VGraphs extends Region{
-
 
   public VGraphs(){
     getStyleClass().setAll("chart");

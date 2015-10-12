@@ -5,7 +5,7 @@ import javafx.scene.Node;
 
 public interface GraphShape{
   /**
-   * 表示するノード。nullも可
+   * 表示するノード。nullを可とする。
    * @return
    */
   public Node getNode();
@@ -24,10 +24,10 @@ public interface GraphShape{
    * 値が正当かどうか。この値がfalseに変わると、GraphPlotAreaはsetNodePropertyを呼び出す
    * @return
    */
-  public ReadOnlyBooleanProperty invalidateProperty();
+  public ReadOnlyBooleanProperty validateProperty();
   /**
    * 値が正当かどうか。この値がfalseに変わると、GraphPlotAreaはsetNodePropertyを呼び出す
    * @return
    */
-  public boolean isInvalidate();
+  public boolean isValidate();
 }
